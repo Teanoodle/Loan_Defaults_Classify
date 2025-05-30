@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-
 def analyze_indian_files():
     """Analyze only Indian car data files (Indian.csv and Indian_v2.csv)"""
     # Define target files
