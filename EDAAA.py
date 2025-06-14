@@ -3,12 +3,6 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy import stats
-from sklearn.preprocessing import PowerTransformer
-from sklearn.model_selection import train_test_split, cross_validate
-from imblearn.over_sampling import SMOTE, ADASYN
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, roc_auc_score, fbeta_score, make_scorer
 # 1. 数据加载
 df = pd.read_csv('cleaned_credit_risk_dataset.csv')
 

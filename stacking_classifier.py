@@ -46,7 +46,7 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
 
 # 定义基学习器
 estimators = [
-    ('lr', LogisticRegression(class_weight='balanced', max_iter=1000)),
+    ('lr', LogisticRegression(class_weight='balanced', max_iter=5000)),
     ('xgb', xgb.XGBClassifier(max_depth=5, random_state=42)),
     ('lgb', lgb.LGBMClassifier(
         max_depth=5,
@@ -59,11 +59,11 @@ estimators = [
 
 # 1. 类权重方法
 print("\n=== Stacking类权重方法 ===")
-scale_pos_weight = np.sum(y_train == 0) / np.sum(y_train == 1)
+scale_pos_weight = 5
 
 # 创建带权重的基学习器
 weighted_estimators = [
-    ('lr', LogisticRegression(class_weight='balanced', max_iter=1000)),
+    ('lr', LogisticRegression(class_weight='balanced', max_iter=5000)),
     ('xgb', xgb.XGBClassifier(
         scale_pos_weight=scale_pos_weight,
         max_depth=5,
