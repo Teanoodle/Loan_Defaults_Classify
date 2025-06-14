@@ -42,6 +42,20 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
     
     return model
 
+# 0. 基础XGBoost方法（无类权重/重采样）
+print("\n=== 基础XGBoost方法 ===")
+model_basic = xgb.XGBClassifier(
+    max_depth=5,
+    learning_rate=0.1,
+    n_estimators=100,
+    random_state=42,
+    eval_metric='auc'
+)
+model_basic = evaluate_model(
+    model_basic, X_train, y_train, X_test, y_test,
+    "基础XGBoost方法"
+)
+
 # 1. 类权重方法
 print("\n=== XGBoost类权重方法 ===")
 # 计算正负样本比例
@@ -124,6 +138,7 @@ model_smoteenn = evaluate_model(
 )
 
 # 保存模型
+joblib.dump(model_basic, 'xgboost_model_basic.pkl')
 joblib.dump(model_weighted, 'xgboost_model_weighted.pkl')
 joblib.dump(model_smoteenn, 'xgboost_model_smoteenn.pkl')
 joblib.dump(model_smote, 'xgboost_model_smote.pkl')

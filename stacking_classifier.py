@@ -57,6 +57,31 @@ estimators = [
     ))
 ]
 
+# 0. 基础Stacking方法（无类权重/重采样）
+print("\n=== 基础Stacking方法 ===")
+base_estimators = [
+    ('lr', LogisticRegression(max_iter=5000)),
+    ('xgb', xgb.XGBClassifier(max_depth=5, random_state=42)),
+    ('lgb', lgb.LGBMClassifier(
+        max_depth=5,
+        random_state=42,
+        verbosity=-1,
+        min_split_gain=0.01,
+        min_data_in_leaf=20
+    ))
+]
+
+stacking_basic = StackingClassifier(
+    estimators=base_estimators,
+    final_estimator=LogisticRegression(),
+    cv=5,
+    stack_method='predict_proba'
+)
+stacking_basic = evaluate_model(
+    stacking_basic, X_train, y_train, X_test, y_test,
+    "基础Stacking方法"
+)
+
 # 1. 类权重方法
 print("\n=== Stacking类权重方法 ===")
 scale_pos_weight = 5
@@ -124,6 +149,28 @@ stacking_adasyn = evaluate_model(
 )
 
 # 保存模型
+joblib.dump(stacking_basic, 'stacking_model_basic.pkl')
 joblib.dump(stacking_weighted, 'stacking_model_weighted.pkl')
 joblib.dump(stacking_smote, 'stacking_model_smote.pkl')
 joblib.dump(stacking_adasyn, 'stacking_model_adasyn.pkl')
+
+# 创建并评估VotingClassifier
+from sklearn.ensemble import VotingClassifier
+
+voting_clf = VotingClassifier(
+    estimators=[
+        ('weighted', stacking_weighted),
+        ('smote', stacking_smote),
+        ('adasyn', stacking_adasyn)
+    ],
+    voting='soft'
+)
+
+print("\n=== VotingClassifier集成三种方法 ===")
+voting_clf = evaluate_model(
+    voting_clf, X_train, y_train, X_test, y_test,
+    "VotingClassifier(加权+SMOTE+ADASYN)"
+)
+
+# 保存最终投票模型
+joblib.dump(voting_clf, 'final_voting_model.pkl')

@@ -41,6 +41,24 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
     
     return model
 
+# 0. 基础LightGBM方法（无类权重/重采样）
+print("\n=== 基础LightGBM方法 ===")
+model_basic = lgb.LGBMClassifier(
+    max_depth=5,
+    learning_rate=0.1,
+    n_estimators=100,
+    random_state=42,
+    objective='binary',
+    metric='auc',
+    verbosity=-1,
+    min_split_gain=0.01,
+    min_data_in_leaf=20
+)
+model_basic = evaluate_model(
+    model_basic, X_train, y_train, X_test, y_test,
+    "基础LightGBM方法"
+)
+
 # 1. 类权重方法
 print("\n=== LightGBM类权重方法 ===")
 # 计算正负样本比例
@@ -114,6 +132,7 @@ model_adasyn = evaluate_model(
 )
 
 # 保存模型
+joblib.dump(model_basic, 'lightgbm_model_basic.pkl')
 joblib.dump(model_weighted, 'lightgbm_model_weighted.pkl')
 joblib.dump(model_smote, 'lightgbm_model_smote.pkl')
 joblib.dump(model_adasyn, 'lightgbm_model_adasyn.pkl')
