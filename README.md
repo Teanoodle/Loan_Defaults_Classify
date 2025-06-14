@@ -1,4 +1,4 @@
-# Car Price Prediction Project
+# Loan Defaults Classifier Project
 
 A machine learning project for classifying loan defaults using different models
 
