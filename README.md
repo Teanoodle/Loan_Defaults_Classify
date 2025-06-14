@@ -1,34 +1,35 @@
 # Car Price Prediction Project
 
-A machine learning project for predicting used car prices in the Indian market.
+A machine learning project for classifying loan defaults using different models
 
 ## Dataset Description
 
 ### Features
-- **Brand**: Car manufacturer (e.g., Volkswagen, Maruti Suzuki, Honda, Tata)
-- **Model**: Specific car model (e.g., Taigun, Baleno, Polo, WRV) 
-- **Year**: Manufacturing year of the vehicle (ranging from older models to 2024)
-- **Age**: Age of the vehicle in years
-- **kmDriven**: Total kilometers driven by the vehicle
-- **Transmission**: Type of transmission (Manual or Automatic)
-- **Owner**: Ownership status (first or second owner)
-- **FuelType**: Type of fuel (Petrol, Diesel, Hybrid/CNG)
-- **PostedDate**: When the car listing was posted
-- **AdditionalInfo**: Extra details about the vehicle
-- **AskPrice**: Listed price in Indian Rupees (₹)
+- **person_age**: Age
+- **person_income**: Annual Income
+- **person_home_ownership**: Home ownership (MORTGAGE,OWN,RENT,OTHER)
+- **person_emp_length**: Employment length (in years)
+- **loan_intent**: Loan intent (DEBTCONSOLIDATION,EDUCATION,HOMEIMPROVEMENT,MEDICAL,PERSONAL,VENTURE)
+- **loan_grade**: Loan grade (A,B,C,D,E,F,G)
+- **loan_amnt**: Loan amount
+- **loan_int_rate**: Interest rate
+- **loan_status**: Loan status (0 is non default, 1 is default)
+- **loan_percent_income**: Percent income (%)
+- **cb_person_default_on_file**: Historical default (N is non default, Y is default)
+- **cb_preson_cred_hist_length**: Credit history length
 
 ### Statistics
 | Metric          | Value         |
 |-----------------|---------------|
-| Total entries   | 14,993        |
-| Columns         | 11            | 
-| Memory usage    | 1.94+ MB      |
+| Total entries   | 32,564        |
+| Columns         | 12            | 
+| Memory usage    | 17.11+ MB      |
 | Data types      | Mixed (int64 and object) |
 
 ## Project Status
 🚀 **In Progress**  
-📅 Last updated: May 30, 2025  
-🔗 Data source: [OLX India](https://www.olx.in)
+📅 Last updated: June 14, 2025  
+🔗 Data source: [Kaggle]([https://www.olx.in](https://www.kaggle.com/datasets/laotse/credit-risk-dataset/data)) by Lao Tse
 
 > Note: This project is currently under development. Initial dataset analysis has been completed.
 
