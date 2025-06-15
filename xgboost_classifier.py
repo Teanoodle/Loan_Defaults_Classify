@@ -9,41 +9,41 @@ from imblearn.combine import SMOTEENN
 import xgboost as xgb
 import joblib
 
-# 加载数据
-data = pd.read_csv('cleaned_credit_risk_dataset_processed.csv')
+# Data loading
+data = pd.read_csv('process_data.csv')
 
-# 准备特征和目标变量
+# Feature and target variable
 X = data.drop('loan_status', axis=1)
 y = data['loan_status']
 
-# 划分训练集和测试集
+# Train-test split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, stratify=y, random_state=42
 )
 
 def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
-    # 训练模型
+    # train the model
     model.fit(X_train, y_train)
     
-    # 预测
+    # predict
     y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:, 1]
     
-    # 评估模型
-    print(f"\n{method_name}评估结果:")
-    print("准确率:", accuracy_score(y_test, y_pred))
-    print("召回率:", recall_score(y_test, y_pred))
-    print("F1分数:", f1_score(y_test, y_pred))
+    # eavluate the model
+    print(f"\n{method_name}Evaluate results:")
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+    print("Recall:", recall_score(y_test, y_pred))
+    print("F1:", f1_score(y_test, y_pred))
     print("AUC-ROC:", roc_auc_score(y_test, y_proba))
-    print("\n分类报告:")
+    print("\n Classification report:")
     print(classification_report(y_test, y_pred))
-    print("混淆矩阵:")
+    print("Confusion matrix:")
     print(confusion_matrix(y_test, y_pred))
     
     return model
 
-# 0. 基础XGBoost方法（无类权重/重采样）
-print("\n=== 基础XGBoost方法 ===")
+# 0. Pure XGBoost method (without class weights/resampling)
+print("\n=== Pure XGBoost method ===")
 model_basic = xgb.XGBClassifier(
     max_depth=5,
     learning_rate=0.1,
@@ -53,11 +53,11 @@ model_basic = xgb.XGBClassifier(
 )
 model_basic = evaluate_model(
     model_basic, X_train, y_train, X_test, y_test,
-    "基础XGBoost方法"
+    "Pure XGBoost method"
 )
 
-# 1. 类权重方法
-print("\n=== XGBoost类权重方法 ===")
+# 1. Class weights method
+print("\n=== XGBoost+Class weights ===")
 # 计算正负样本比例
 scale_pos_weight = np.sum(y_train == 0) / np.sum(y_train == 1)
 
@@ -71,11 +71,11 @@ model_weighted = xgb.XGBClassifier(
 )
 model_weighted = evaluate_model(
     model_weighted, X_train, y_train, X_test, y_test, 
-    "XGBoost类权重方法"
+    "XGBoost+Class weights"
 )
 
-# 2. SMOTE方法
-print("\n=== XGBoost+SMOTE方法 ===")
+# 2. SMOTE
+print("\n=== XGBoost+SMOTE ===")
 smote = SMOTE(
     sampling_strategy=0.8,
     random_state=42,
@@ -92,11 +92,11 @@ model_smote = xgb.XGBClassifier(
 )
 model_smote = evaluate_model(
     model_smote, X_train_smote, y_train_smote, X_test, y_test,
-    "XGBoost+SMOTE方法"
+    "XGBoost+SMOTE"
 )
 
-# 3. ADASYN方法
-print("\n=== XGBoost+ADASYN方法 ===")
+# 3. ADASYN
+print("\n=== XGBoost+ADASYN ===")
 adasyn = ADASYN(
     sampling_strategy=0.8,
     random_state=42,
@@ -113,38 +113,38 @@ model_adasyn = xgb.XGBClassifier(
 )
 model_adasyn = evaluate_model(
     model_adasyn, X_train_adasyn, y_train_adasyn, X_test, y_test,
-    "XGBoost+ADASYN方法"
+    "XGBoost+ADASYN"
 )
 
-# 4. SMOTEENN方法
-print("\n=== XGBoost+SMOTEENN方法 ===")
-smote_enn = SMOTEENN(
-    sampling_strategy=0.8,
-    random_state=42,
-    smote=SMOTE(k_neighbors=3)
-)
-X_train_smoteenn, y_train_smoteenn = smote_enn.fit_resample(X_train, y_train)
+# # 4. SMOTEENN
+# print("\n=== XGBoost+SMOTEENN ===")
+# smote_enn = SMOTEENN(
+#     sampling_strategy=0.8,
+#     random_state=42,
+#     smote=SMOTE(k_neighbors=3)
+# )
+# X_train_smoteenn, y_train_smoteenn = smote_enn.fit_resample(X_train, y_train)
 
-model_smoteenn = xgb.XGBClassifier(
-    max_depth=5,
-    learning_rate=0.1,
-    n_estimators=100,
-    random_state=42,
-    eval_metric='auc'
-)
-model_smoteenn = evaluate_model(
-    model_smoteenn, X_train_smoteenn, y_train_smoteenn, X_test, y_test,
-    "XGBoost+SMOTEENN方法"
-)
+# model_smoteenn = xgb.XGBClassifier(
+#     max_depth=5,
+#     learning_rate=0.1,
+#     n_estimators=100,
+#     random_state=42,
+#     eval_metric='auc'
+# )
+# model_smoteenn = evaluate_model(
+#     model_smoteenn, X_train_smoteenn, y_train_smoteenn, X_test, y_test,
+#     "XGBoost+SMOTEENN"
+# )
 
-# 保存模型
+# Model saving
 joblib.dump(model_basic, 'xgboost_model_basic.pkl')
 joblib.dump(model_weighted, 'xgboost_model_weighted.pkl')
-joblib.dump(model_smoteenn, 'xgboost_model_smoteenn.pkl')
+# joblib.dump(model_smoteenn, 'xgboost_model_smoteenn.pkl')
 joblib.dump(model_smote, 'xgboost_model_smote.pkl')
 joblib.dump(model_adasyn, 'xgboost_model_adasyn.pkl')
 
-# # 特征重要性分析
-# print("\n特征重要性(top10):")
+# # Features importance
+# print("\n Important features(top10):")
 # importance = pd.Series(model_weighted.feature_importances_, index=X.columns)
 # print(importance.sort_values(ascending=False).head(10))

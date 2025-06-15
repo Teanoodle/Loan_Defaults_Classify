@@ -9,41 +9,41 @@ from imblearn.over_sampling import SMOTE, ADASYN
 from imblearn.combine import SMOTEENN
 import joblib
 
-# 加载数据
-data = pd.read_csv('cleaned_credit_risk_dataset_processed.csv')
+# Data loading
+data = pd.read_csv('process_data.csv')
 
-# 准备特征和目标变量
+# Feature and target variable
 X = data.drop('loan_status', axis=1)
 y = data['loan_status']
 
-# 划分训练集和测试集
+# Train-test split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, stratify=y, random_state=42
 )
 
 def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
-    # 训练模型
+    # train the model
     model.fit(X_train, y_train)
     
-    # 预测
+    # predict
     y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:, 1]
     
-    # 评估模型
-    print(f"\n{method_name}评估结果:")
-    print("准确率:", accuracy_score(y_test, y_pred))
-    print("召回率:", recall_score(y_test, y_pred))
-    print("F1分数:", f1_score(y_test, y_pred))
+    # eavluate the model
+    print(f"\n{method_name}Evaluate results:")
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+    print("Recall:", recall_score(y_test, y_pred))
+    print("F1:", f1_score(y_test, y_pred))
     print("AUC-ROC:", roc_auc_score(y_test, y_proba))
-    print("\n分类报告:")
+    print("\n Classification report:")
     print(classification_report(y_test, y_pred))
-    print("混淆矩阵:")
+    print("Confusion matrix:")
     print(confusion_matrix(y_test, y_pred))
     
     return model
 
-# 1. 类权重方法
-print("\n=== 随机森林类权重方法 ===")
+# 1. class_weight method
+print("\n=== RF+class weights ===")
 model_weighted = RandomForestClassifier(
     #class_weight={0: 1, 1: 5},  # 提高少数类的权重
     class_weight='balanced',
@@ -53,11 +53,11 @@ model_weighted = RandomForestClassifier(
 )
 model_weighted = evaluate_model(
     model_weighted, X_train, y_train, X_test, y_test, 
-    "随机森林类权重方法"
+    "RF+class weights"
 )
 
 # 2. SMOTE方法
-print("\n=== 随机森林+SMOTE方法 ===")
+print("\n=== RF+SMOTE ===")
 smote = SMOTE(
     sampling_strategy=0.8,
     random_state=42,
@@ -66,18 +66,18 @@ smote = SMOTE(
 X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
 
 model_smote = RandomForestClassifier(
-    # class_weight={0: 1, 1: 5},  # 提高少数类的权重
+    # class_weight={0: 1, 1: 5},  # make the minority class more weighted
     n_estimators=100,
     max_depth=5,
     random_state=42
 )
 model_smote = evaluate_model(
     model_smote, X_train_smote, y_train_smote, X_test, y_test,
-    "随机森林+SMOTE方法"
+    "RF+SMOTE"
 )
 
-# 3. ADASYN方法
-print("\n=== 随机森林+ADASYN方法 ===")
+# 3. ADASYN
+print("\n=== RF+ADASYN ===")
 adasyn = ADASYN(
     sampling_strategy=0.8,
     random_state=42,
@@ -86,18 +86,18 @@ adasyn = ADASYN(
 X_train_adasyn, y_train_adasyn = adasyn.fit_resample(X_train, y_train)
 
 model_adasyn = RandomForestClassifier(
-    # class_weight={0: 1, 1: 5},  # 提高少数类的权重
+    # class_weight={0: 1, 1: 5},  # make the minority class more weighted
     n_estimators=100,
     max_depth=5,
     random_state=42
 )
 model_adasyn = evaluate_model(
     model_adasyn, X_train_adasyn, y_train_adasyn, X_test, y_test,
-    "随机森林+ADASYN方法"
+    "RF+ADASYN"
 )
 
-# # 4. SMOTEENN方法
-# print("\n=== 随机森林+SMOTEENN方法 ===")
+# # 4. SMOTEENN
+# print("\n=== RF+SMOTEENN ===")
 # smote_enn = SMOTEENN(
 #     sampling_strategy=0.8,
 #     random_state=42,
@@ -112,16 +112,16 @@ model_adasyn = evaluate_model(
 # )
 # model_smoteenn = evaluate_model(
 #     model_smoteenn, X_train_smoteenn, y_train_smoteenn, X_test, y_test,
-#     "随机森林+SMOTEENN方法"
+#     "RF+SMOTEENN"
 # )
 
-# 保存模型
+# model saving
 joblib.dump(model_weighted, 'random_forest_model_weighted.pkl')
 # joblib.dump(model_smoteenn, 'random_forest_model_smoteenn.pkl')
 joblib.dump(model_smote, 'random_forest_model_smote.pkl')
 joblib.dump(model_adasyn, 'random_forest_model_adasyn.pkl')
 
-# # 特征重要性分析
-# print("\n特征重要性(top10):")
+# # Features importance
+# print("\n Important features(top10):")
 # importance = pd.Series(model_weighted.feature_importances_, index=X.columns)
 # print(importance.sort_values(ascending=False).head(10))

@@ -8,33 +8,32 @@ from sklearn.utils.class_weight import compute_class_weight
 from imblearn.over_sampling import SMOTE, ADASYN
 import numpy as np
 
-# 加载数据
-data = pd.read_csv('cleaned_credit_risk_dataset_processed.csv')
+# Data loading
+data = pd.read_csv('process_data.csv')
 
-# 准备特征和目标变量
+# Feature and target variable
 X = data.drop('loan_status', axis=1)
 y = data['loan_status']
 
-# 划分训练集和测试集
+# Train-test split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, stratify=y, random_state=42
 )
 
-print("\n=== 类权重方法 ===")
-# 计算类权重
+print("\n=== Class weights method ===")
+# Compute class weights
 classes = np.unique(y_train)
 weights = compute_class_weight('balanced', classes=classes, y=y_train)
 class_weights = dict(zip(classes, weights))
 
-# 构建带类权重的逻辑回归模型
+# Logistic Regression with class weights
 model_weighted = LogisticRegression(
     class_weight=class_weights,
     max_iter=1000,
     random_state=42
 )
 
-print("\n=== SMOTE优化方法 ===")
-# 应用激进版SMOTE
+print("\n=== SMOTE method ===")
 smote = SMOTE(
     sampling_strategy=0.8,
     random_state=42,
@@ -47,8 +46,7 @@ model_smote = LogisticRegression(
     class_weight='balanced'
 )
 
-print("\n=== ADASYN方法 ===")
-# 应用ADASYN过采样
+print("\n=== ADASYN method ===")
 adasyn = ADASYN(
     sampling_strategy=0.8,
     random_state=42,
@@ -61,44 +59,54 @@ model_adasyn = LogisticRegression(
     class_weight='balanced'
 )
 
+# Function to evaluate the model
 def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
-    # 训练模型
+    '''Evaluate the model with training and testing data.
+    Args:
+        model: The model to evaluate.
+        X_train: Training features.
+        y_train: Training labels.
+        X_test: Testing features.
+        y_test: Testing labels.
+        method_name: Name of the method for logging.
+    '''
+    # train the model
     model.fit(X_train, y_train)
     
-    # 预测
+    # predict
     y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:, 1]
     
-    # 评估模型
-    print(f"\n{method_name}评估结果:")
-    print("准确率:", accuracy_score(y_test, y_pred))
-    print("召回率:", recall_score(y_test, y_pred))
-    print("F1分数:", f1_score(y_test, y_pred))
+    # evaluate the model
+    print(f"\n{method_name}Evaluate results:")
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+    print("Recall:", recall_score(y_test, y_pred))
+    print("F1:", f1_score(y_test, y_pred))
     print("AUC-ROC:", roc_auc_score(y_test, y_proba))
-    print("\n分类报告:")
+    print("\n Classification report:")
     print(classification_report(y_test, y_pred))
-    print("混淆矩阵:")
+    print("Confusion matrix:")
     print(confusion_matrix(y_test, y_pred))
     
     return model
 
-# 评估三种方法
+
+
+
+# Evaluate models
 model_weighted = evaluate_model(
-    model_weighted, X_train, y_train, X_test, y_test, 
-    "类权重方法"
+    model_weighted, X_train, y_train, X_test, y_test,'class_weights method'
 )
 
 model_smote = evaluate_model(
-    model_smote, X_train_smote, y_train_smote, X_test, y_test,
-    "SMOTE优化方法"
+    model_smote, X_train_smote, y_train_smote, X_test, y_test,'smote method'
 )
 
 model_adasyn = evaluate_model(
-    model_adasyn, X_train_adasyn, y_train_adasyn, X_test, y_test,
-    "ADASYN方法"
+    model_adasyn, X_train_adasyn, y_train_adasyn, X_test, y_test,'adasyn method'
 )
 
-# 保存模型
+# Model saving
 import joblib
 joblib.dump(model_weighted, 'credit_risk_model_weighted.pkl')
 joblib.dump(model_smote, 'credit_risk_model_smote.pkl')

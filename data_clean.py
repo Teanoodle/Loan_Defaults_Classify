@@ -120,8 +120,8 @@ def clean_data(input_file, output_file, categorical_encoding='onehot'):
     }
 
 if __name__ == "__main__":
-    input_csv = "cleaned_credit_risk_dataset.csv"
-    output_csv = "cleaned_credit_risk_dataset_processed.csv"
+    input_csv = "credit_risk_dataset.csv"
+    output_csv = "cleaned_data.csv"
     
     # The example uses different encoding methods
     print("\n Use One Hot encoding to process categorical variables:")

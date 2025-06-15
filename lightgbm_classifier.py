@@ -8,41 +8,41 @@ from imblearn.over_sampling import SMOTE, ADASYN
 import lightgbm as lgb
 import joblib
 
-# 加载数据
-data = pd.read_csv('cleaned_credit_risk_dataset_processed.csv')
+# Data loading
+data = pd.read_csv('process_data.csv')
 
-# 准备特征和目标变量
+# Feature and target variable
 X = data.drop('loan_status', axis=1)
 y = data['loan_status']
 
-# 划分训练集和测试集
+# Train-test split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, stratify=y, random_state=42
 )
 
 def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
-    # 训练模型
+    # train the model
     model.fit(X_train, y_train)
     
-    # 预测
+    # predict
     y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:, 1]
     
-    # 评估模型
-    print(f"\n{method_name}评估结果:")
-    print("准确率:", accuracy_score(y_test, y_pred))
-    print("召回率:", recall_score(y_test, y_pred))
-    print("F1分数:", f1_score(y_test, y_pred))
+    # eavluate the model
+    print(f"\n{method_name}Evaluate results:")
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+    print("Recall:", recall_score(y_test, y_pred))
+    print("F1:", f1_score(y_test, y_pred))
     print("AUC-ROC:", roc_auc_score(y_test, y_proba))
-    print("\n分类报告:")
+    print("\n Classification report:")
     print(classification_report(y_test, y_pred))
-    print("混淆矩阵:")
+    print("Confusion matrix:")
     print(confusion_matrix(y_test, y_pred))
     
     return model
 
-# 0. 基础LightGBM方法（无类权重/重采样）
-print("\n=== 基础LightGBM方法 ===")
+# 0. Pure LightGBM method (without class weights/resampling)
+print("\n=== Pure LightGBM ===")
 model_basic = lgb.LGBMClassifier(
     max_depth=5,
     learning_rate=0.1,
@@ -56,12 +56,12 @@ model_basic = lgb.LGBMClassifier(
 )
 model_basic = evaluate_model(
     model_basic, X_train, y_train, X_test, y_test,
-    "基础LightGBM方法"
+    "Pure LightGBM"
 )
 
-# 1. 类权重方法
-print("\n=== LightGBM类权重方法 ===")
-# 计算正负样本比例
+# 1. Class weights method
+print("\n=== LightGBM+class weights ===")
+# Calculate scale_pos_weight
 scale_pos_weight = np.sum(y_train == 0) / np.sum(y_train == 1)
 
 model_weighted = lgb.LGBMClassifier(
@@ -72,17 +72,17 @@ model_weighted = lgb.LGBMClassifier(
     random_state=42,
     objective='binary',
     metric='auc',
-    verbosity=-1,  # 禁用所有警告
-    min_split_gain=0.01,  # 设置最小分裂增益
-    min_data_in_leaf=20  # 防止过小叶子节点
+    verbosity=-1,  # banish warnings
+    min_split_gain=0.01,  # decide the minimum gain to make a split
+    min_data_in_leaf=20  # prevent small leaf nodes
 )
 model_weighted = evaluate_model(
     model_weighted, X_train, y_train, X_test, y_test, 
-    "LightGBM类权重方法"
+    "LightGBM+class weights"
 )
 
-# 2. SMOTE方法
-print("\n=== LightGBM+SMOTE方法 ===")
+# 2. SMOTE
+print("\n=== LightGBM+SMOTE ===")
 smote = SMOTE(
     sampling_strategy=0.8,
     random_state=42,
@@ -103,11 +103,11 @@ model_smote = lgb.LGBMClassifier(
 )
 model_smote = evaluate_model(
     model_smote, X_train_smote, y_train_smote, X_test, y_test,
-    "LightGBM+SMOTE方法"
+    "LightGBM+SMOTE"
 )
 
-# 3. ADASYN方法
-print("\n=== LightGBM+ADASYN方法 ===")
+# 3. ADASYN
+print("\n=== LightGBM+ADASYN ===")
 adasyn = ADASYN(
     sampling_strategy=0.8,
     random_state=42,
@@ -128,16 +128,16 @@ model_adasyn = lgb.LGBMClassifier(
 )
 model_adasyn = evaluate_model(
     model_adasyn, X_train_adasyn, y_train_adasyn, X_test, y_test,
-    "LightGBM+ADASYN方法"
+    "LightGBM+ADASYN"
 )
 
-# 保存模型
+# model saving
 joblib.dump(model_basic, 'lightgbm_model_basic.pkl')
 joblib.dump(model_weighted, 'lightgbm_model_weighted.pkl')
 joblib.dump(model_smote, 'lightgbm_model_smote.pkl')
 joblib.dump(model_adasyn, 'lightgbm_model_adasyn.pkl')
 
-# 特征重要性分析
-print("\n特征重要性(top10):")
-importance = pd.Series(model_weighted.feature_importances_, index=X.columns)
-print(importance.sort_values(ascending=False).head(10))
+# # Features importance
+# print("\n Important features(top10):")
+# importance = pd.Series(model_weighted.feature_importances_, index=X.columns)
+# print(importance.sort_values(ascending=False).head(10))
