@@ -46,26 +46,6 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
 
 # 定义基学习器（新增随机森林）
 estimators = [
-    ('lr', LogisticRegression(class_weight='balanced', max_iter=5000)),
-    ('xgb', xgb.XGBClassifier(max_depth=5, random_state=42)),
-    ('lgb', lgb.LGBMClassifier(
-        max_depth=5,
-        random_state=42,
-        verbosity=-1,
-        min_split_gain=0.01,
-        min_data_in_leaf=20
-    )),
-    ('rf', RandomForestClassifier(
-        n_estimators=100,
-        max_depth=5,
-        class_weight='balanced',
-        random_state=42
-    ))
-]
-
-# 0. 基础Stacking方法（无类权重/重采样）
-print("\n=== 基础Stacking方法 ===")
-base_estimators = [
     ('lr', LogisticRegression(max_iter=5000)),
     ('xgb', xgb.XGBClassifier(max_depth=5, random_state=42)),
     ('lgb', lgb.LGBMClassifier(
@@ -78,24 +58,11 @@ base_estimators = [
     ('rf', RandomForestClassifier(
         n_estimators=100,
         max_depth=5,
+        # class_weight='balanced',   # 提高少数类的权重
+        class_weight={0: 1, 1: 5},
         random_state=42
     ))
 ]
-
-stacking_basic = StackingClassifier(
-    estimators=base_estimators,
-    final_estimator=lgb.LGBMClassifier(  # 改为LightGBM
-        max_depth=3,
-        random_state=42,
-        verbosity=-1
-    ),
-    cv=5,
-    stack_method='predict_proba'
-)
-stacking_basic = evaluate_model(
-    stacking_basic, X_train, y_train, X_test, y_test,
-    "基础Stacking方法"
-)
 
 # 1. 类权重方法
 print("\n=== Stacking类权重方法 ===")
@@ -103,7 +70,7 @@ scale_pos_weight = 5
 
 # 创建带权重的基学习器（新增随机森林）
 weighted_estimators = [
-    ('lr', LogisticRegression(class_weight='balanced', max_iter=5000)),
+    ('lr', LogisticRegression(class_weight={0: 1, 1: 5}, max_iter=5000)),
     ('xgb', xgb.XGBClassifier(
         scale_pos_weight=scale_pos_weight,
         max_depth=5,
@@ -120,19 +87,15 @@ weighted_estimators = [
     ('rf', RandomForestClassifier(
         n_estimators=100,
         max_depth=5,
-        class_weight='balanced',
+        # class_weight='balanced',
+        class_weight={0: 1, 1: 5},  # 提高少数类的权重
         random_state=42
     ))
 ]
 
 stacking_weighted = StackingClassifier(
     estimators=weighted_estimators,
-    final_estimator=lgb.LGBMClassifier(  # 改为LightGBM
-        max_depth=3,
-        random_state=42,
-        verbosity=-1,
-        scale_pos_weight=scale_pos_weight
-    ),
+    final_estimator=LogisticRegression(class_weight='balanced'),
     cv=5,
     stack_method='predict_proba'
 )
@@ -149,11 +112,7 @@ X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
 
 stacking_smote = StackingClassifier(
     estimators=estimators,
-    final_estimator=lgb.LGBMClassifier(  # 改为LightGBM
-        max_depth=3,
-        random_state=42,
-        verbosity=-1
-    ),
+    final_estimator=LogisticRegression(),
     cv=5,
     stack_method='predict_proba'
 )
@@ -169,11 +128,7 @@ X_train_adasyn, y_train_adasyn = adasyn.fit_resample(X_train, y_train)
 
 stacking_adasyn = StackingClassifier(
     estimators=estimators,
-    final_estimator=lgb.LGBMClassifier(  # 改为LightGBM
-        max_depth=3,
-        random_state=42,
-        verbosity=-1
-    ),
+    final_estimator=LogisticRegression(),
     cv=5,
     stack_method='predict_proba'
 )
@@ -183,29 +138,28 @@ stacking_adasyn = evaluate_model(
 )
 
 # 保存模型
-joblib.dump(stacking_basic, 'stacking_model_basic_lgb.pkl')
-joblib.dump(stacking_weighted, 'stacking_model_weighted_lgb.pkl')
-joblib.dump(stacking_smote, 'stacking_model_smote_lgb.pkl')
-joblib.dump(stacking_adasyn, 'stacking_model_adasyn_lgb.pkl')
+joblib.dump(stacking_weighted, 'stacking_model_weighted.pkl')
+joblib.dump(stacking_smote, 'stacking_model_smote.pkl')
+joblib.dump(stacking_adasyn, 'stacking_model_adasyn.pkl')
 
 # 创建并评估VotingClassifier
 from sklearn.ensemble import VotingClassifier
 
 voting_clf = VotingClassifier(
     estimators=[
-        ('basic', stacking_basic),
         ('weighted', stacking_weighted),
         ('smote', stacking_smote),
         ('adasyn', stacking_adasyn)
     ],
-    voting='soft'
+    voting='soft',
+    weights=[1.5, 0.8, 1]  # 为想要的模型赋予更高权重
 )
 
-print("\n=== VotingClassifier集成四种方法 ===")
+print("\n=== VotingClassifier集成三种方法 ===")
 voting_clf = evaluate_model(
     voting_clf, X_train, y_train, X_test, y_test,
-    "VotingClassifier(基础+加权+SMOTE+ADASYN)"
+    "VotingClassifier(加权+SMOTE+ADASYN)"
 )
 
 # 保存最终投票模型
-joblib.dump(voting_clf, 'final_voting_model_lgb.pkl')
+joblib.dump(voting_clf, 'final_voting_model.pkl')
