@@ -57,6 +57,7 @@ model_adasyn = LogisticRegression(
     max_iter=1000,
     random_state=42,
     class_weight='balanced'
+    # class_weight={0: 1, 1: 5},
 )
 
 # Function to evaluate the model
