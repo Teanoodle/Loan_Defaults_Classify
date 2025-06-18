@@ -21,8 +21,43 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, stratify=y, random_state=42
 )
 
+# 特征工程优化
+print("\n=== 特征工程优化 ===")
+
+# 1. 增加特征选择数量至15个
+selector = xgb.XGBClassifier(random_state=42)
+selector.fit(X_train, y_train)
+importance = pd.Series(selector.feature_importances_, index=X.columns)
+selected_features = importance.sort_values(ascending=False).head(15).index.tolist()
+print("Selected features (Top15):", selected_features)
+
+# # 2. 添加特征交互
+# if 'total_debt' in X.columns and 'income' in X.columns:
+#     # 债务收入比
+#     X_train['debt_to_income'] = X_train['total_debt'] / (X_train['income'] + 1e-6)
+#     X_test['debt_to_income'] = X_test['total_debt'] / (X_test['income'] + 1e-6)
+    
+#     # 新增：贷款支付收入比
+#     if 'loan_amnt' in X.columns:
+#         X_train['payment_to_income'] = X_train['loan_amnt'] / (X_train['income'] + 1e-6)
+#         X_test['payment_to_income'] = X_test['loan_amnt'] / (X_test['income'] + 1e-6)
+    
+#     selected_features.extend(['debt_to_income', 'payment_to_income'])
+
+# 3. 调整类别权重系数 (+20%)
+global scale_pos_weight
+scale_pos_weight = np.sum(y_train == 0) / np.sum(y_train == 1) * 1.2
+
+# 应用特征选择
+X_train = X_train[selected_features]
+X_test = X_test[selected_features]
+print(f"最终使用特征数量: {len(selected_features)}")
+
+# 保存特征选择结果供其他模型使用
+pd.Series(selected_features).to_csv('selected_features.csv', index=False)
+
 def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
-    # train the model
+    # train the model (特征选择已在外部完成)
     model.fit(X_train, y_train)
     
     # predict
@@ -58,8 +93,8 @@ model_basic = evaluate_model(
 
 # 1. Class weights method
 print("\n=== XGBoost+Class weights ===")
-# 计算正负样本比例
-scale_pos_weight = np.sum(y_train == 0) / np.sum(y_train == 1)
+# 使用全局调整后的scale_pos_weight
+print(f"调整后的类别权重: {scale_pos_weight:.2f}")
 
 model_weighted = xgb.XGBClassifier(
     scale_pos_weight=scale_pos_weight,
@@ -140,11 +175,21 @@ model_adasyn = evaluate_model(
 # Model saving
 joblib.dump(model_basic, 'xgboost_model_basic.pkl')
 joblib.dump(model_weighted, 'xgboost_model_weighted.pkl')
-# joblib.dump(model_smoteenn, 'xgboost_model_smoteenn.pkl')
 joblib.dump(model_smote, 'xgboost_model_smote.pkl')
 joblib.dump(model_adasyn, 'xgboost_model_adasyn.pkl')
+# joblib.dump(model_smoteenn, 'xgboost_model_smoteenn.pkl')
 
-# # Features importance
-# print("\n Important features(top10):")
-# importance = pd.Series(model_weighted.feature_importances_, index=X.columns)
-# print(importance.sort_values(ascending=False).head(10))
+# 特征重要性可视化
+import matplotlib.pyplot as plt
+plt.figure(figsize=(12,8))
+pd.Series(model_weighted.feature_importances_, 
+         index=X_train.columns).sort_values().plot.barh()
+plt.title('Optimized Feature Importance')
+plt.tight_layout()
+plt.savefig('feature_importance.png')
+print("\n特征重要性图已保存为feature_importance.png")
+
+# 显示最重要的5个特征
+print("\nTop 5重要特征:")
+print(pd.Series(model_weighted.feature_importances_, 
+               index=X_train.columns).sort_values(ascending=False).head(5))

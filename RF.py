@@ -42,6 +42,20 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
     
     return model
 
+# 0. Pure Random Forest method (without class weights/resampling)
+print("\n=== Pure Random Forest ===")
+model_basic = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=5,
+    random_state=42
+)
+model_basic = evaluate_model(
+    model_basic, X_train, y_train, X_test, y_test,
+    "Pure Random Forest"
+)
+
+
+
 # 1. class_weight method
 print("\n=== RF+class weights ===")
 model_weighted = RandomForestClassifier(
@@ -116,6 +130,7 @@ model_adasyn = evaluate_model(
 # )
 
 # model saving
+joblib.dump(model_basic, 'random_forest_model_basic.pkl')
 joblib.dump(model_weighted, 'random_forest_model_weighted.pkl')
 # joblib.dump(model_smoteenn, 'random_forest_model_smoteenn.pkl')
 joblib.dump(model_smote, 'random_forest_model_smote.pkl')

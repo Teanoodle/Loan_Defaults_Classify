@@ -12,7 +12,7 @@ import lightgbm as lgb
 import joblib
 
 # 加载数据
-data = pd.read_csv('cleaned_credit_risk_dataset_processed.csv')
+data = pd.read_csv('process_data.csv')
 
 # 准备特征和目标变量
 X = data.drop('loan_status', axis=1)

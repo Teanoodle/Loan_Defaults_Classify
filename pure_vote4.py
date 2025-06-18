@@ -9,7 +9,7 @@ from imblearn.over_sampling import SMOTE, ADASYN
 import joblib
 
 # 加载数据
-data = pd.read_csv('cleaned_credit_risk_dataset_processed.csv')
+data = pd.read_csv('process_data.csv')
 
 # 准备特征和目标变量
 X = data.drop('loan_status', axis=1)
@@ -21,6 +21,16 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
+    """
+    评估模型性能的函数
+    :param model: 训练好的模型
+    :param X_train: 训练特征
+    :param y_train: 训练标签
+    :param X_test: 测试特征
+    :param y_test: 测试标签
+    :param method_name: 模型方法名称
+    :return: 训练好的模型
+    """
     # 训练模型
     model.fit(X_train, y_train)
     
@@ -40,6 +50,33 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
     print(confusion_matrix(y_test, y_pred))
     
     return model
+
+
+# 0. 纯投票分类器（无类权重/重采样）
+print("\n=== 纯投票分类器 ===")
+# 加载预训练的模型
+logreg = joblib.load('credit_risk_model_basic.pkl')
+xgb = joblib.load('xgboost_model_basic.pkl')
+lgbm = joblib.load('lightgbm_model_basic.pkl')
+rf = joblib.load('random_forest_model_basic.pkl')
+voting_pure = VotingClassifier(
+    estimators=[
+        ('logreg', logreg),
+        ('xgb', xgb),
+        ('lgbm', lgbm),
+        ('rf', rf)
+    ],
+    voting='soft'
+)
+voting_pure = evaluate_model(
+    voting_pure, X_train, y_train, X_test, y_test,
+    "纯投票分类器"
+)
+# 保存模型
+joblib.dump(voting_pure, 'voting_pure.pkl')
+
+
+
 
 # 1. 类权重方法投票分类器
 print("\n=== 类权重方法投票分类器 ===")
@@ -67,6 +104,9 @@ voting_weighted = evaluate_model(
 # 保存模型
 joblib.dump(voting_weighted, 'voting_model_weighted.pkl')
 
+
+
+
 # 2. SMOTE方法投票分类器
 print("\n=== SMOTE方法投票分类器 ===")
 # 应用SMOTE过采样
@@ -92,14 +132,18 @@ voting_smote = VotingClassifier(
     ],
     voting='soft'
 )
-
+# 训练使用过采样数据，评估使用原始训练数据
+voting_smote.fit(X_train_smote, y_train_smote)
 voting_smote = evaluate_model(
-    voting_smote, X_train_smote, y_train_smote, X_test, y_test,
+    voting_smote, X_train, y_train, X_test, y_test,
     "SMOTE方法投票分类器"
 )
 
 # 保存模型
 joblib.dump(voting_smote, 'voting_model_smote.pkl')
+
+
+
 
 # 3. ADASYN方法投票分类器
 print("\n=== ADASYN方法投票分类器 ===")
@@ -127,8 +171,10 @@ voting_adasyn = VotingClassifier(
     voting='soft'
 )
 
+# 训练使用过采样数据，评估使用原始训练数据
+voting_adasyn.fit(X_train_adasyn, y_train_adasyn)
 voting_adasyn = evaluate_model(
-    voting_adasyn, X_train_adasyn, y_train_adasyn, X_test, y_test,
+    voting_adasyn, X_train, y_train, X_test, y_test,
     "ADASYN方法投票分类器"
 )
 
@@ -136,11 +182,11 @@ voting_adasyn = evaluate_model(
 joblib.dump(voting_adasyn, 'voting_model_adasyn.pkl')
 
 # 特征重要性分析
-print("\n特征重要性分析(top10):")
-for name, model in voting_adasyn.named_estimators_.items():
-    try:
-        importance = pd.Series(model.feature_importances_, index=X.columns)
-        print(f"\n{name}特征重要性:")
-        print(importance.sort_values(ascending=False).head(10))
-    except AttributeError:
-        print(f"\n{name}不支持特征重要性分析")
+# print("\n特征重要性分析(top10):")
+# for name, model in voting_adasyn.named_estimators_.items():
+#     try:
+#         importance = pd.Series(model.feature_importances_, index=X.columns)
+#         print(f"\n{name}特征重要性:")
+#         print(importance.sort_values(ascending=False).head(10))
+#     except AttributeError:
+#         print(f"\n{name}不支持特征重要性分析")
