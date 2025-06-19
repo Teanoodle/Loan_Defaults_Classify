@@ -4,6 +4,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (accuracy_score, recall_score, 
                            roc_auc_score, f1_score, 
                            classification_report, confusion_matrix)
+from sklearn.preprocessing import StandardScaler
 from sklearn.utils.class_weight import compute_class_weight
 from imblearn.over_sampling import SMOTE, ADASYN
 import numpy as np
@@ -20,6 +21,11 @@ y = data['loan_status']
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, stratify=y, random_state=42
 )
+
+# Standardize features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
 
 # Function to evaluate the model
 def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
@@ -56,7 +62,11 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
 print("\n=== Basic Logistic Regression (no weight adjustment) ===")
 model_basic = LogisticRegression(
     max_iter=1000,
-    random_state=42
+    random_state=42,
+    solver='saga',  # Better for large datasets
+    penalty='elasticnet',  # Combine L1 and L2 regularization
+    l1_ratio=0.5,  # Balance between L1 and L2
+    C=0.1  # Stronger regularization
 )
 
 # Evaluate basic model
@@ -67,19 +77,30 @@ model_basic = evaluate_model(
 # Save basic model
 joblib.dump(model_basic, 'credit_risk_model_basic.pkl')
 
+
+# Class weights method
 print("\n=== Class weights method ===")
 # Compute class weights
 classes = np.unique(y_train)
 weights = compute_class_weight('balanced', classes=classes, y=y_train)
 class_weights = dict(zip(classes, weights))
 
-# Logistic Regression with class weights
 model_weighted = LogisticRegression(
     class_weight=class_weights,
     max_iter=1000,
     random_state=42
 )
 
+# Evaluate models
+model_weighted = evaluate_model(
+    model_weighted, X_train, y_train, X_test, y_test,'class_weights method'
+)
+joblib.dump(model_weighted, 'credit_risk_model_weighted.pkl')
+
+
+
+
+# SMOTE method
 print("\n=== SMOTE method ===")
 smote = SMOTE(
     sampling_strategy=0.8,
@@ -93,6 +114,16 @@ model_smote = LogisticRegression(
     class_weight='balanced'
 )
 
+# Evaluate SMOTE model
+model_smote = evaluate_model(
+    model_smote, X_train_smote, y_train_smote, X_test, y_test,'smote method'
+)
+joblib.dump(model_smote, 'credit_risk_model_smote.pkl')
+
+
+
+
+# ADASYN method
 print("\n=== ADASYN method ===")
 adasyn = ADASYN(
     sampling_strategy=0.8,
@@ -107,21 +138,8 @@ model_adasyn = LogisticRegression(
     # class_weight={0: 1, 1: 5},
 )
 
-# Evaluate models
-model_weighted = evaluate_model(
-    model_weighted, X_train, y_train, X_test, y_test,'class_weights method'
-)
-
-model_smote = evaluate_model(
-    model_smote, X_train_smote, y_train_smote, X_test, y_test,'smote method'
-)
-
 model_adasyn = evaluate_model(
     model_adasyn, X_train_adasyn, y_train_adasyn, X_test, y_test,'adasyn method'
 )
-
-# Model saving
-joblib.dump(model_weighted, 'credit_risk_model_weighted.pkl')
-joblib.dump(model_smote, 'credit_risk_model_smote.pkl')
 joblib.dump(model_adasyn, 'credit_risk_model_adasyn.pkl')
 

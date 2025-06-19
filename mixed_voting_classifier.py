@@ -48,8 +48,8 @@ def evaluate_model(model, X_test, y_test, method_name):
 # 创建混合投票分类器
 print("\n=== 混合方法投票分类器 ===")
 # 加载预训练的不同处理方法模型
-logreg_weighted = joblib.load('credit_risk_model_weighted.pkl')  # 类权重
-xgb_adasyn = joblib.load('xgboost_model_adasyn.pkl')            # ADASYN
+logreg_weighted = joblib.load('credit_risk_model_adasyn.pkl')  # 类权重
+xgb_adasyn = joblib.load('xgboost_model_basic.pkl')            # ADASYN
 lgbm_smote = joblib.load('lightgbm_model_smote.pkl')           # SMOTE
 rf_basic = joblib.load('random_forest_model_basic.pkl')        # 基础方法
 
@@ -59,8 +59,10 @@ mixed_voting = VotingClassifier(
         ('xgb_adasyn', xgb_adasyn),
         ('lgbm_smote', lgbm_smote),
         ('rf_basic', rf_basic)
+        
     ],
     voting='soft',  # 使用概率投票
+    weights=[1.8, 1,1.2,1],  # 为想要的模型赋予更高权重
     n_jobs=-1      # 使用所有CPU核心
 )
 
@@ -74,7 +76,7 @@ mixed_voting = evaluate_model(
     "混合方法投票分类器"
 )
 
-# 保存模型
-joblib.dump(mixed_voting, 'mixed_voting_model.pkl')
+# # 保存模型
+# joblib.dump(mixed_voting, 'mixed_voting_model.pkl')
 
 print("\n混合投票分类器创建完成！")
