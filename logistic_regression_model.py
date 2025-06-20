@@ -1,31 +1,20 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (accuracy_score, recall_score, 
                            roc_auc_score, f1_score, 
                            classification_report, confusion_matrix)
-from sklearn.preprocessing import StandardScaler
 from sklearn.utils.class_weight import compute_class_weight
 from imblearn.over_sampling import SMOTE, ADASYN
 import numpy as np
 import joblib
+from feature_engineering import load_and_preprocess_data, prepare_features
 
-# Data loading
-data = pd.read_csv('process_data.csv')
+# 加载数据并进行特征工程
+X, y = load_and_preprocess_data()
+X_train, X_test, y_train, y_test, scaler = prepare_features(X, y)
 
-# Feature and target variable
-X = data.drop('loan_status', axis=1)
-y = data['loan_status']
 
-# Train-test split
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.3, stratify=y, random_state=42
-)
 
-# Standardize features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
 
 # Function to evaluate the model
 def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
@@ -57,6 +46,9 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
     print(confusion_matrix(y_test, y_pred))
     
     return model
+
+
+
 
 # Basic Logistic Regression without any weight adjustment
 print("\n=== Basic Logistic Regression (no weight adjustment) ===")
