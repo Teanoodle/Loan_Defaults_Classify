@@ -59,7 +59,7 @@ logreg = joblib.load('lr_smote_model.pkl')
 xgb = joblib.load('xgb_adasyn_model.pkl')
 lgbm = joblib.load('lgb_adasyn_model.pkl')
 rf = joblib.load('rf_smote_model.pkl')
-voting_pure = VotingClassifier(
+voting_classifier = VotingClassifier(
     estimators=[
         ('logreg', logreg),
         ('xgb', xgb),
@@ -69,7 +69,7 @@ voting_pure = VotingClassifier(
     voting='soft'
 )
 voting_pure = evaluate_model(
-    voting_pure, X_train, y_train, X_test, y_test,
+    voting_classifier, X_train, y_train, X_test, y_test,
     "纯投票分类器"
 )
 # 保存模型
@@ -77,15 +77,15 @@ joblib.dump(voting_pure, 'voting_pure.pkl')
 
 
 # # 训练使用过采样数据，评估使用原始训练数据
-# voting_smote.fit(X_train_smote, y_train_smote)
+# voting_classifier.fit(X_train_smote, y_train_smote)
 # voting_smote = evaluate_model(
-#     voting_smote, X_train, y_train, X_test, y_test,
+#     voting_classifier, X_train, y_train, X_test, y_test,
 #     "SMOTE方法投票分类器"
 # )
 
 # # 训练使用过采样数据，评估使用原始训练数据
-# voting_adasyn.fit(X_train_adasyn, y_train_adasyn)
+# voting_classifier.fit(X_train_adasyn, y_train_adasyn)
 # voting_adasyn = evaluate_model(
-#     voting_adasyn, X_train, y_train, X_test, y_test,
+#     voting_classifier, X_train, y_train, X_test, y_test,
 #     "ADASYN方法投票分类器"
 # )
