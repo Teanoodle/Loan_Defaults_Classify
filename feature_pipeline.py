@@ -9,14 +9,14 @@ from sklearn.linear_model import LogisticRegression
 class FeaturePipeline:
     def __init__(self, model_type='random_forest'):
         """
-        初始化特征工程管道
-        :param model_type: 模型类型，决定使用哪种特征选择方法
+        Initialize feature engineering pipeline
+        :param model_type: Model type, determines which feature selection method to use
         """
         self.model_type = model_type
         self.scaler = StandardScaler()
         self.selector = None
         
-        # 根据模型类型初始化特征选择器
+        # Initialize feature selector based on model type
         if model_type == 'random_forest':
             self.base_model = RandomForestClassifier()
         elif model_type == 'xgboost':
@@ -26,22 +26,22 @@ class FeaturePipeline:
         elif model_type == 'logistic':
             self.base_model = LogisticRegression()
         else:
-            raise ValueError(f"未知的模型类型: {model_type}")
+            raise ValueError(f"Unknown model type: {model_type}")
 
     def fit_transform(self, X, y):
         """
-        拟合并转换特征
-        :param X: 特征数据
-        :param y: 标签数据
-        :return: 转换后的特征数据
+        Fit and transform features
+        :param X: Feature data
+        :param y: Label data
+        :return: Transformed feature data
         """
-        # 标准化处理（逻辑回归需要，其他模型可选）
+        # Standardization (required for logistic regression, optional for other models)
         if self.model_type == 'logistic':
             X_scaled = self.scaler.fit_transform(X)
         else:
             X_scaled = X.copy()
             
-        # 特征选择
+        # Feature selection
         self.selector = SelectFromModel(self.base_model, threshold='median')
         self.selector.fit(X_scaled, y)
         X_selected = self.selector.transform(X_scaled)
@@ -50,20 +50,20 @@ class FeaturePipeline:
 
     def transform(self, X):
         """
-        应用已拟合的转换
-        :param X: 特征数据
-        :return: 转换后的特征数据
+        Apply fitted transformations
+        :param X: Feature data
+        :return: Transformed feature data
         """
         if self.selector is None:
-            raise RuntimeError("必须先调用fit_transform方法")
+            raise RuntimeError("Must call fit_transform method first")
             
-        # 标准化处理
+        # Standardization
         if self.model_type == 'logistic':
             X_scaled = self.scaler.transform(X)
         else:
             X_scaled = X.copy()
             
-        # 特征选择
+        # Feature selection
         X_selected = self.selector.transform(X_scaled)
         
         return X_selected

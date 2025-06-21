@@ -7,18 +7,18 @@ from imblearn.over_sampling import SMOTE, ADASYN
 from sklearn.feature_selection import SelectFromModel
 from sklearn.preprocessing import StandardScaler
 
-# 读取数据
+# Load data
 data = pd.read_csv('process_data_nolog.csv')
 # data = pd.read_csv('process_data.csv')    ## 用这个更好
 
-# 特征工程 - 随机森林特征重要性选择
+# Feature engineering - Random Forest feature importance selection
 X = data.drop('loan_status', axis=1)
 y = data['loan_status']
 
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# 划分训练测试集
+# Split train-test sets
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
 
 def print_top_features(model, feature_names):
@@ -30,17 +30,17 @@ def print_top_features(model, feature_names):
         print(f"{feature_names[sorted_idx[i]]}: {feature_importance[sorted_idx[i]]:.6f}")
 
 def print_metrics(y_true, y_pred):
-    print(f"准确率: {accuracy_score(y_true, y_pred):.4f}")
-    print(f"召回率: {recall_score(y_true, y_pred):.4f}")
-    print(f"F1分数: {f1_score(y_true, y_pred):.4f}")
+    print(f"Accuracy: {accuracy_score(y_true, y_pred):.4f}")
+    print(f"Recall: {recall_score(y_true, y_pred):.4f}")
+    print(f"F1 Score: {f1_score(y_true, y_pred):.4f}")
     print(f"AUC-ROC: {roc_auc_score(y_true, y_pred):.4f}")
-    print("混淆矩阵:")
+    print("Confusion Matrix:")
     print(confusion_matrix(y_true, y_pred))
-    print("分类报告:")
+    print("Classification Report:")
     print(classification_report(y_true, y_pred))
 
-# 基础模型
-print("=== 基础随机森林 ===")
+# Basic model
+print("=== Basic Random Forest ===")
 rf = RandomForestClassifier()
 # rf = RandomForestClassifier(
 #     n_estimators=100,
@@ -53,13 +53,13 @@ print_metrics(y_test, y_pred)
 print_top_features(rf, data.drop('loan_status', axis=1).columns)
 joblib.dump(rf, 'rf_model_basic.pkl')
 
-# 特征选择
+# Feature selection
 selector = SelectFromModel(rf, threshold='median')
 selector.fit(X_train, y_train)
 X_train_selected = selector.transform(X_train)
 X_test_selected = selector.transform(X_test)
 
-print("\n=== 特征选择后的随机森林 ===")
+print("\n=== Random Forest with Feature Selection ===")
 rf_selected = RandomForestClassifier()
 # rf_selected = RandomForestClassifier(
 #     n_estimators=100,
@@ -72,8 +72,8 @@ print_metrics(y_test, y_pred)
 print_top_features(rf_selected, data.drop('loan_status', axis=1).columns[selector.get_support()])
 joblib.dump(rf_selected, 'rf_selected_model.pkl')
 
-# 类权重方法
-print("\n=== 带类权重的随机森林 ===")
+# Class weight method
+print("\n=== Random Forest with Class Weights ===")
 rf_weighted = RandomForestClassifier(class_weight='balanced')
 # rf_weighted = RandomForestClassifier(
 #     #class_weight={0: 1, 1: 5},  # 提高少数类的权重
@@ -88,10 +88,10 @@ print_metrics(y_test, y_pred)
 print_top_features(rf_weighted, data.drop('loan_status', axis=1).columns)
 joblib.dump(rf_weighted, 'rf_weighted_model.pkl')
 
-# SMOTE方法
-print("\n=== SMOTE处理前的样本分布 ===")
-print(f"正类样本数: {sum(y_train == 1)}")
-print(f"负类样本数: {sum(y_train == 0)}")
+# SMOTE method
+print("\n=== Sample distribution before SMOTE ===")
+print(f"Positive samples: {sum(y_train == 1)}")
+print(f"Negative samples: {sum(y_train == 0)}")
 
 smote = SMOTE()
 # smote = SMOTE(
@@ -100,9 +100,9 @@ smote = SMOTE()
 #     k_neighbors=3
 # )
 X_smote, y_smote = smote.fit_resample(X_train, y_train)
-print("\n=== SMOTE处理后的样本分布 ===")
-print(f"正类样本数: {sum(y_smote == 1)}")
-print(f"负类样本数: {sum(y_smote == 0)}")
+print("\n=== Sample distribution after SMOTE ===")
+print(f"Positive samples: {sum(y_smote == 1)}")
+print(f"Negative samples: {sum(y_smote == 0)}")
 rf_smote = RandomForestClassifier()
 # rf_smote = RandomForestClassifier(
 #     # class_weight={0: 1, 1: 5},  # make the minority class more weighted
@@ -112,15 +112,15 @@ rf_smote = RandomForestClassifier()
 # )
 rf_smote.fit(X_smote, y_smote)
 y_pred = rf_smote.predict(X_test)
-print("\n=== SMOTE处理后的随机森林 ===")
+print("\n=== Random Forest with SMOTE ===")
 print_metrics(y_test, y_pred)
 print_top_features(rf_smote, data.drop('loan_status', axis=1).columns)
 joblib.dump(rf_smote, 'rf_smote_model.pkl')
 
-# ADASYN方法
-print("\n=== ADASYN处理前的样本分布 ===")
-print(f"正类样本数: {sum(y_train == 1)}")
-print(f"负类样本数: {sum(y_train == 0)}")
+# ADASYN method
+print("\n=== Sample distribution before ADASYN ===")
+print(f"Positive samples: {sum(y_train == 1)}")
+print(f"Negative samples: {sum(y_train == 0)}")
 
 adasyn = ADASYN()
 # adasyn = ADASYN(
@@ -129,9 +129,9 @@ adasyn = ADASYN()
 #     n_neighbors=3
 # )
 X_adasyn, y_adasyn = adasyn.fit_resample(X_train, y_train)
-print("\n=== ADASYN处理后的样本分布 ===")
-print(f"正类样本数: {sum(y_adasyn == 1)}")
-print(f"负类样本数: {sum(y_adasyn == 0)}")
+print("\n=== Sample distribution after ADASYN ===")
+print(f"Positive samples: {sum(y_adasyn == 1)}")
+print(f"Negative samples: {sum(y_adasyn == 0)}")
 rf_adasyn = RandomForestClassifier()
 # rf_adasyn = RandomForestClassifier(
 #     # class_weight={0: 1, 1: 5},  # make the minority class more weighted
@@ -141,7 +141,7 @@ rf_adasyn = RandomForestClassifier()
 # )
 rf_adasyn.fit(X_adasyn, y_adasyn)
 y_pred = rf_adasyn.predict(X_test)
-print("\n=== ADASYN处理后的随机森林 ===")
+print("\n=== Random Forest with ADASYN ===")
 print_metrics(y_test, y_pred)
 print_top_features(rf_adasyn, data.drop('loan_status', axis=1).columns)
 joblib.dump(rf_adasyn, 'rf_adasyn_model.pkl')

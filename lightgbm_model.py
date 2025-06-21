@@ -7,18 +7,18 @@ from imblearn.over_sampling import SMOTE, ADASYN
 from sklearn.feature_selection import SelectFromModel
 from sklearn.preprocessing import StandardScaler
 
-# 读取数据
+# Load data
 data = pd.read_csv('process_data_nolog.csv')
 # data = pd.read_csv('process_data.csv')
 
-# 特征工程 - LightGBM特征重要性选择
+# Feature engineering - LightGBM feature importance selection
 X = data.drop('loan_status', axis=1)
 y = data['loan_status']
 
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# 划分训练测试集
+# Split train-test sets
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
 
 def print_top_features(model, feature_names):
@@ -30,17 +30,17 @@ def print_top_features(model, feature_names):
         print(f"{feature_names[sorted_idx[i]]}: {feature_importance[sorted_idx[i]]:.6f}")
 
 def print_metrics(y_true, y_pred):
-    print(f"准确率: {accuracy_score(y_true, y_pred):.4f}")
-    print(f"召回率: {recall_score(y_true, y_pred):.4f}")
-    print(f"F1分数: {f1_score(y_true, y_pred):.4f}")
+    print(f"Accuracy: {accuracy_score(y_true, y_pred):.4f}")
+    print(f"Recall: {recall_score(y_true, y_pred):.4f}")
+    print(f"F1 Score: {f1_score(y_true, y_pred):.4f}")
     print(f"AUC-ROC: {roc_auc_score(y_true, y_pred):.4f}")
-    print("混淆矩阵:")
+    print("Confusion Matrix:")
     print(confusion_matrix(y_true, y_pred))
-    print("分类报告:")
+    print("Classification Report:")
     print(classification_report(y_true, y_pred))
 
-# 基础模型
-print("=== 基础LightGBM ===")
+# Basic model
+print("=== Basic LightGBM ===")
 lgb_model = lgb.LGBMClassifier()
 # lgb_model = lgb.LGBMClassifier(
 #     max_depth=5,
@@ -59,13 +59,13 @@ print_metrics(y_test, y_pred)
 print_top_features(lgb_model, data.drop('loan_status', axis=1).columns)
 joblib.dump(lgb_model, 'lgb_model_basic.pkl')
 
-# 特征选择
+# Feature selection
 selector = SelectFromModel(lgb_model, threshold='median')
 selector.fit(X_train, y_train)
 X_train_selected = selector.transform(X_train)
 X_test_selected = selector.transform(X_test)
 
-print("\n=== 特征选择后的LightGBM ===")
+print("\n=== LightGBM with Feature Selection ===")
 lgb_selected = lgb.LGBMClassifier()
 # lgb_selected = lgb.LGBMClassifier(
 #     max_depth=5,
@@ -84,8 +84,8 @@ print_metrics(y_test, y_pred)
 print_top_features(lgb_selected, data.drop('loan_status', axis=1).columns[selector.get_support()])
 joblib.dump(lgb_selected, 'lgb_selected_model.pkl')
 
-# 类权重方法
-print("\n=== 带类权重的LightGBM ===")
+# Class weight method
+print("\n=== LightGBM with Class Weights ===")
 lgb_weighted = lgb.LGBMClassifier(is_unbalance=True)
 # scale_pos_weight = np.sum(y_train == 0) / np.sum(y_train == 1)
 # lgb_weighted = lgb.LGBMClassifier(
@@ -106,8 +106,8 @@ print_metrics(y_test, y_pred)
 print_top_features(lgb_weighted, data.drop('loan_status', axis=1).columns)
 joblib.dump(lgb_weighted, 'lgb_weighted_model.pkl')
 
-# SMOTE方法
-print("\n=== SMOTE处理后的LightGBM ===")
+# SMOTE method
+print("\n=== LightGBM with SMOTE ===")
 smote = SMOTE()
 # smote = SMOTE(
 #     sampling_strategy=0.8,
@@ -133,8 +133,8 @@ print_metrics(y_test, y_pred)
 print_top_features(lgb_smote, data.drop('loan_status', axis=1).columns)
 joblib.dump(lgb_smote, 'lgb_smote_model.pkl')
 
-# ADASYN方法
-print("\n=== ADASYN处理后的LightGBM ===")
+# ADASYN method
+print("\n=== LightGBM with ADASYN ===")
 adasyn = ADASYN()
 # adasyn = ADASYN(
 #     sampling_strategy=0.8,

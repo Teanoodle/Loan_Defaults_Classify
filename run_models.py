@@ -4,14 +4,14 @@ import sys
 def run_script(script_name):
     try:
         result = subprocess.run([sys.executable, script_name], check=True, capture_output=True, text=True)
-        print(f"\n=== {script_name} 输出 ===")
+        print(f"\n=== {script_name} output ===")
         print(result.stdout)
     except subprocess.CalledProcessError as e:
-        print(f"\n=== {script_name} 执行出错 ===")
+        print(f"\n=== {script_name} execution error ===")
         print(e.stderr)
 
 if __name__ == "__main__":
-    print("开始运行所有模型...")
+    print("Starting to run all models...")
     
     models = [
         "logistic_regression.py",
@@ -24,4 +24,4 @@ if __name__ == "__main__":
     for model in models:
         run_script(model)
         
-    print("\n所有模型运行完成！")
+    print("\nAll models completed running!")

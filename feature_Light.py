@@ -6,16 +6,16 @@ import lightgbm as lgb
 import joblib
 
 def lightgbm_feature_importance(X, y, top_n=15):
-    """使用LightGBM获取特征重要性"""
+    """Get feature importance using LightGBM"""
     model = lgb.LGBMClassifier(random_state=42)
     model.fit(X, y)
     importance = pd.Series(model.feature_importances_, index=X.columns)
     return importance.sort_values(ascending=False).head(top_n).index.tolist()
 
 def create_lightgbm_features(X):
-    """创建LightGBM特有的特征"""
+    """Create LightGBM specific features"""
     X_new = X.copy()
-    # 添加类别特征标记
+    # Add categorical feature markers
     if 'grade' in X.columns:
         X_new['grade'] = X['grade'].astype('category')
     if 'sub_grade' in X.columns:
@@ -23,37 +23,37 @@ def create_lightgbm_features(X):
     return X_new
 
 def prepare_lightgbm_features(file_path='process_data.csv'):
-    """LightGBM特征工程流程"""
-    # 加载数据
+    """LightGBM feature engineering pipeline"""
+    # Load data
     data = pd.read_csv(file_path)
     X = data.drop('loan_status', axis=1)
     y = data['loan_status']
     
-    # 特征工程
-    print("\n=== LightGBM特征工程 ===")
-    # 1. 获取重要特征
+    # Feature engineering
+    print("\n=== LightGBM Feature Engineering ===")
+    # 1. Get important features
     selected_features = lightgbm_feature_importance(X, y)
-    print(f"LightGBM选择的重要特征 ({len(selected_features)}个):")
+    print(f"LightGBM selected important features ({len(selected_features)}):")
     for i, feat in enumerate(selected_features, 1):
         print(f"  {i:2d}. {feat}")
     
-    # 2. 创建特有特征
+    # 2. Create specific features
     X = create_lightgbm_features(X)
     
-    # 3. 应用特征选择
+    # 3. Apply feature selection
     X = X[selected_features]
     
-    # 划分数据集
+    # Split dataset
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.3, stratify=y, random_state=42
     )
     
-    # 标准化
+    # Standardization
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_train)
     X_test = scaler.transform(X_test)
     
-    print(f"\n最终特征维度: {X_train.shape[1]}")
+    print(f"\nFinal feature dimension: {X_train.shape[1]}")
     return X_train, X_test, y_train, y_test, scaler, selected_features
 
 if __name__ == "__main__":
