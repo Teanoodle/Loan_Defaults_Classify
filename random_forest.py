@@ -1,10 +1,11 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.externals import joblib
+import joblib
 from sklearn.metrics import classification_report, accuracy_score, recall_score, f1_score, roc_auc_score, confusion_matrix
 from imblearn.over_sampling import SMOTE, ADASYN
 from sklearn.feature_selection import SelectFromModel
+from sklearn.preprocessing import StandardScaler
 
 # 读取数据
 data = pd.read_csv('process_data_nolog.csv')
@@ -14,8 +15,19 @@ data = pd.read_csv('process_data_nolog.csv')
 X = data.drop('loan_status', axis=1)
 y = data['loan_status']
 
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
 # 划分训练测试集
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
+
+def print_top_features(model, feature_names):
+    """Print top 5 important features with their importance scores"""
+    feature_importance = model.feature_importances_
+    sorted_idx = feature_importance.argsort()[::-1]
+    print("\nTop 5 important features:")
+    for i in range(5):
+        print(f"{feature_names[sorted_idx[i]]}: {feature_importance[sorted_idx[i]]:.6f}")
 
 def print_metrics(y_true, y_pred):
     print(f"准确率: {accuracy_score(y_true, y_pred):.4f}")
@@ -38,6 +50,7 @@ rf = RandomForestClassifier()
 rf.fit(X_train, y_train)
 y_pred = rf.predict(X_test)
 print_metrics(y_test, y_pred)
+print_top_features(rf, data.drop('loan_status', axis=1).columns)
 joblib.dump(rf, 'rf_model_basic.pkl')
 
 # 特征选择
@@ -56,6 +69,7 @@ rf_selected = RandomForestClassifier()
 rf_selected.fit(X_train_selected, y_train)
 y_pred = rf_selected.predict(X_test_selected)
 print_metrics(y_test, y_pred)
+print_top_features(rf_selected, data.drop('loan_status', axis=1).columns[selector.get_support()])
 joblib.dump(rf_selected, 'rf_selected_model.pkl')
 
 # 类权重方法
@@ -71,10 +85,14 @@ rf_weighted = RandomForestClassifier(class_weight='balanced')
 rf_weighted.fit(X_train, y_train)
 y_pred = rf_weighted.predict(X_test)
 print_metrics(y_test, y_pred)
+print_top_features(rf_weighted, data.drop('loan_status', axis=1).columns)
 joblib.dump(rf_weighted, 'rf_weighted_model.pkl')
 
 # SMOTE方法
-print("\n=== SMOTE处理后的随机森林 ===")
+print("\n=== SMOTE处理前的样本分布 ===")
+print(f"正类样本数: {sum(y_train == 1)}")
+print(f"负类样本数: {sum(y_train == 0)}")
+
 smote = SMOTE()
 # smote = SMOTE(
 #     sampling_strategy=0.8,
@@ -82,6 +100,9 @@ smote = SMOTE()
 #     k_neighbors=3
 # )
 X_smote, y_smote = smote.fit_resample(X_train, y_train)
+print("\n=== SMOTE处理后的样本分布 ===")
+print(f"正类样本数: {sum(y_smote == 1)}")
+print(f"负类样本数: {sum(y_smote == 0)}")
 rf_smote = RandomForestClassifier()
 # rf_smote = RandomForestClassifier(
 #     # class_weight={0: 1, 1: 5},  # make the minority class more weighted
@@ -91,11 +112,16 @@ rf_smote = RandomForestClassifier()
 # )
 rf_smote.fit(X_smote, y_smote)
 y_pred = rf_smote.predict(X_test)
+print("\n=== SMOTE处理后的随机森林 ===")
 print_metrics(y_test, y_pred)
+print_top_features(rf_smote, data.drop('loan_status', axis=1).columns)
 joblib.dump(rf_smote, 'rf_smote_model.pkl')
 
 # ADASYN方法
-print("\n=== ADASYN处理后的随机森林 ===")
+print("\n=== ADASYN处理前的样本分布 ===")
+print(f"正类样本数: {sum(y_train == 1)}")
+print(f"负类样本数: {sum(y_train == 0)}")
+
 adasyn = ADASYN()
 # adasyn = ADASYN(
 #     sampling_strategy=0.8,
@@ -103,6 +129,9 @@ adasyn = ADASYN()
 #     n_neighbors=3
 # )
 X_adasyn, y_adasyn = adasyn.fit_resample(X_train, y_train)
+print("\n=== ADASYN处理后的样本分布 ===")
+print(f"正类样本数: {sum(y_adasyn == 1)}")
+print(f"负类样本数: {sum(y_adasyn == 0)}")
 rf_adasyn = RandomForestClassifier()
 # rf_adasyn = RandomForestClassifier(
 #     # class_weight={0: 1, 1: 5},  # make the minority class more weighted
@@ -112,5 +141,7 @@ rf_adasyn = RandomForestClassifier()
 # )
 rf_adasyn.fit(X_adasyn, y_adasyn)
 y_pred = rf_adasyn.predict(X_test)
+print("\n=== ADASYN处理后的随机森林 ===")
 print_metrics(y_test, y_pred)
+print_top_features(rf_adasyn, data.drop('loan_status', axis=1).columns)
 joblib.dump(rf_adasyn, 'rf_adasyn_model.pkl')

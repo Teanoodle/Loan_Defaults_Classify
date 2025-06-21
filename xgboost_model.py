@@ -1,10 +1,11 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier
-from sklearn.externals import joblib
+import joblib
 from sklearn.metrics import classification_report, accuracy_score, recall_score, f1_score, roc_auc_score, confusion_matrix
 from imblearn.over_sampling import SMOTE, ADASYN
 from sklearn.feature_selection import SelectFromModel
+from sklearn.preprocessing import StandardScaler
 
 # 读取数据
 data = pd.read_csv('process_data_nolog.csv')
@@ -15,8 +16,19 @@ data = pd.read_csv('process_data_nolog.csv')
 X = data.drop('loan_status', axis=1)
 y = data['loan_status']
 
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
 # 划分训练测试集
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
+
+def print_top_features(model, feature_names):
+    """Print top 5 important features with their importance scores"""
+    feature_importance = model.feature_importances_
+    sorted_idx = feature_importance.argsort()[::-1]
+    print("\nTop 5 important features:")
+    for i in range(5):
+        print(f"{feature_names[sorted_idx[i]]}: {feature_importance[sorted_idx[i]]:.6f}")
 
 def print_metrics(y_true, y_pred):
     print(f"准确率: {accuracy_score(y_true, y_pred):.4f}")
@@ -41,6 +53,7 @@ xgb = XGBClassifier()
 xgb.fit(X_train, y_train)
 y_pred = xgb.predict(X_test)
 print_metrics(y_test, y_pred)
+print_top_features(xgb, data.drop('loan_status', axis=1).columns)
 joblib.dump(xgb, 'xgb_model_basic.pkl')
 
 # 特征选择
@@ -61,6 +74,7 @@ xgb_selected = XGBClassifier()
 xgb_selected.fit(X_train_selected, y_train)
 y_pred = xgb_selected.predict(X_test_selected)
 print_metrics(y_test, y_pred)
+print_top_features(xgb_selected, data.drop('loan_status', axis=1).columns[selector.get_support()])
 joblib.dump(xgb_selected, 'xgb_selected_model.pkl')
 
 # 类权重方法
@@ -78,10 +92,14 @@ xgb_weighted = XGBClassifier(scale_pos_weight=sum(y==0)/sum(y==1))
 xgb_weighted.fit(X_train, y_train)
 y_pred = xgb_weighted.predict(X_test)
 print_metrics(y_test, y_pred)
+print_top_features(xgb_weighted, data.drop('loan_status', axis=1).columns)
 joblib.dump(xgb_weighted, 'xgb_weighted_model.pkl')
 
 # SMOTE方法
-print("\n=== SMOTE处理后的XGBoost ===")
+print("\n=== SMOTE处理前的样本分布 ===")
+print(f"正类样本数: {sum(y_train == 1)}")
+print(f"负类样本数: {sum(y_train == 0)}")
+
 smote = SMOTE()
 # smote = SMOTE(
 #     sampling_strategy=0.8,
@@ -89,6 +107,9 @@ smote = SMOTE()
 #     k_neighbors=3
 # )
 X_smote, y_smote = smote.fit_resample(X_train, y_train)
+print("\n=== SMOTE处理后的样本分布 ===")
+print(f"正类样本数: {sum(y_smote == 1)}")
+print(f"负类样本数: {sum(y_smote == 0)}")
 xgb_smote = XGBClassifier()
 # xgb_smote = XGBClassifier(
 #     max_depth=5,
@@ -99,11 +120,16 @@ xgb_smote = XGBClassifier()
 # )
 xgb_smote.fit(X_smote, y_smote)
 y_pred = xgb_smote.predict(X_test)
+print("\n=== SMOTE处理后的XGBoost ===")
 print_metrics(y_test, y_pred)
+print_top_features(xgb_smote, data.drop('loan_status', axis=1).columns)
 joblib.dump(xgb_smote, 'xgb_smote_model.pkl')
 
 # ADASYN方法
-print("\n=== ADASYN处理后的XGBoost ===")
+print("\n=== ADASYN处理前的样本分布 ===")
+print(f"正类样本数: {sum(y_train == 1)}")
+print(f"负类样本数: {sum(y_train == 0)}")
+
 adasyn = ADASYN()
 # adasyn = ADASYN(
 #     sampling_strategy=0.8,
@@ -111,6 +137,9 @@ adasyn = ADASYN()
 #     n_neighbors=3
 # )
 X_adasyn, y_adasyn = adasyn.fit_resample(X_train, y_train)
+print("\n=== ADASYN处理后的样本分布 ===")
+print(f"正类样本数: {sum(y_adasyn == 1)}")
+print(f"负类样本数: {sum(y_adasyn == 0)}")
 xgb_adasyn = XGBClassifier()
 # xgb_adasyn = XGBClassifier(
 #     max_depth=5,
@@ -121,5 +150,7 @@ xgb_adasyn = XGBClassifier()
 # )
 xgb_adasyn.fit(X_adasyn, y_adasyn)
 y_pred = xgb_adasyn.predict(X_test)
+print("\n=== ADASYN处理后的XGBoost ===")
 print_metrics(y_test, y_pred)
+print_top_features(xgb_adasyn, data.drop('loan_status', axis=1).columns)
 joblib.dump(xgb_adasyn, 'xgb_adasyn_model.pkl')

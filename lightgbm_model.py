@@ -1,10 +1,11 @@
 import pandas as pd
 import lightgbm as lgb
 from sklearn.model_selection import train_test_split
-from sklearn.externals import joblib
+import joblib
 from sklearn.metrics import classification_report, accuracy_score, recall_score, f1_score, roc_auc_score, confusion_matrix
 from imblearn.over_sampling import SMOTE, ADASYN
 from sklearn.feature_selection import SelectFromModel
+from sklearn.preprocessing import StandardScaler
 
 # 读取数据
 data = pd.read_csv('process_data_nolog.csv')
@@ -14,8 +15,19 @@ data = pd.read_csv('process_data_nolog.csv')
 X = data.drop('loan_status', axis=1)
 y = data['loan_status']
 
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
 # 划分训练测试集
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
+
+def print_top_features(model, feature_names):
+    """Print top 5 important features with their importance scores"""
+    feature_importance = model.feature_importances_
+    sorted_idx = feature_importance.argsort()[::-1]
+    print("\nTop 5 important features:")
+    for i in range(5):
+        print(f"{feature_names[sorted_idx[i]]}: {feature_importance[sorted_idx[i]]:.6f}")
 
 def print_metrics(y_true, y_pred):
     print(f"准确率: {accuracy_score(y_true, y_pred):.4f}")
@@ -44,6 +56,7 @@ lgb_model = lgb.LGBMClassifier()
 lgb_model.fit(X_train, y_train)
 y_pred = lgb_model.predict(X_test)
 print_metrics(y_test, y_pred)
+print_top_features(lgb_model, data.drop('loan_status', axis=1).columns)
 joblib.dump(lgb_model, 'lgb_model_basic.pkl')
 
 # 特征选择
@@ -68,6 +81,7 @@ lgb_selected = lgb.LGBMClassifier()
 lgb_selected.fit(X_train_selected, y_train)
 y_pred = lgb_selected.predict(X_test_selected)
 print_metrics(y_test, y_pred)
+print_top_features(lgb_selected, data.drop('loan_status', axis=1).columns[selector.get_support()])
 joblib.dump(lgb_selected, 'lgb_selected_model.pkl')
 
 # 类权重方法
@@ -89,6 +103,7 @@ lgb_weighted = lgb.LGBMClassifier(is_unbalance=True)
 lgb_weighted.fit(X_train, y_train)
 y_pred = lgb_weighted.predict(X_test)
 print_metrics(y_test, y_pred)
+print_top_features(lgb_weighted, data.drop('loan_status', axis=1).columns)
 joblib.dump(lgb_weighted, 'lgb_weighted_model.pkl')
 
 # SMOTE方法
@@ -115,6 +130,7 @@ lgb_smote = lgb.LGBMClassifier()
 lgb_smote.fit(X_smote, y_smote)
 y_pred = lgb_smote.predict(X_test)
 print_metrics(y_test, y_pred)
+print_top_features(lgb_smote, data.drop('loan_status', axis=1).columns)
 joblib.dump(lgb_smote, 'lgb_smote_model.pkl')
 
 # ADASYN方法
@@ -141,4 +157,5 @@ lgb_adasyn = lgb.LGBMClassifier()
 lgb_adasyn.fit(X_adasyn, y_adasyn)
 y_pred = lgb_adasyn.predict(X_test)
 print_metrics(y_test, y_pred)
+print_top_features(lgb_adasyn, data.drop('loan_status', axis=1).columns)
 joblib.dump(lgb_adasyn, 'lgb_adasyn_model.pkl')
