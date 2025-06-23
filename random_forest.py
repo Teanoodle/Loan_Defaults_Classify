@@ -6,6 +6,9 @@ from sklearn.metrics import classification_report, accuracy_score, recall_score,
 from imblearn.over_sampling import SMOTE, ADASYN
 from sklearn.feature_selection import SelectFromModel
 from sklearn.preprocessing import StandardScaler
+import shap
+from sklearn.metrics import roc_curve, auc
+import matplotlib.pyplot as plt
 
 # Load data
 data = pd.read_csv('process_data_nolog.csv')
@@ -148,3 +151,76 @@ print("\n=== Random Forest with ADASYN ===")
 print_metrics(y_test, y_pred)
 print_top_features(rf_adasyn, data.drop('loan_status', axis=1).columns)
 joblib.dump(rf_adasyn, 'rf_adasyn_model.pkl')
+
+
+
+def plot_auc_roc(model, X_test, y_test):
+    """AUC-ROC cuvrve"""
+    y_pred_proba = model.predict_proba(X_test)[:, 1]
+    fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
+    roc_auc = auc(fpr, tpr)
+    
+    plt.figure(figsize=(8, 6))
+    plt.plot(fpr, tpr, color='darkorange', lw=2, 
+             label=f'ROC curve (area = {roc_auc:.2f})')
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('AUC-ROC Curve for RF')
+    plt.legend(loc="lower right")
+    # plt.savefig("RF_AUC-ROC_curve.png", dpi=300, bbox_inches='tight')
+    plt.show()
+
+
+def shap_analysis(model, X_train, X_test, feature_names):
+    """SHAP importance analysis"""
+    explainer = shap.Explainer(model.predict_proba, X_train)
+    shap_values = explainer(X_test)
+    
+    # Global feature importance
+    plt.figure(figsize=(10, 6))
+    shap.summary_plot(
+        shap_values[:, :, 1], 
+        X_test, 
+        feature_names=feature_names, 
+        plot_type="bar", 
+        show=False,
+        max_display=10)
+    plt.title("SHAP Feature Importance for RF")
+    plt.tight_layout()
+    # plt.savefig("RF_shap_importance.png", dpi=300, bbox_inches='tight')
+    plt.show()
+    
+    
+    # Single prediction explanation
+    plt.figure(figsize=(10, 6))
+    shap.summary_plot(
+        shap_values[:, :, 1],
+        X_test, 
+        feature_names=feature_names, 
+        show=False,
+        max_display=10)
+    plt.title("SHAP Summary Plot for RF")
+    plt.tight_layout()
+    # plt.savefig("RF_shap_summaryt.png", dpi=300, bbox_inches='tight')
+    plt.show()
+    
+    
+
+print("\n=== Visualization Analysis for Basic RF ===")
+# plot_auc_roc(rf, X_test, y_test)
+# shap_analysis(rf, X_train, X_test[:10], data.columns.drop('loan_status'))
+
+plot_auc_roc(rf_selected, X_test_selected, y_test)
+shap_analysis(rf_selected, X_train, X_test_selected[:10], data.columns.drop('loan_status'))
+
+# plot_auc_roc(rf_weighted, X_test, y_test)
+# shap_analysis(rf_weighted, X_train, X_test[:10], data.columns.drop('loan_status'))
+
+# plot_auc_roc(rf_smote, X_test, y_test)
+# shap_analysis(rf_smote, X_train, X_test[:10], data.columns.drop('loan_status'))
+
+# plot_auc_roc(rf_adasyn, X_test, y_test)
+# shap_analysis(rf_adasyn, X_train, X_test[:10], data.columns.drop('loan_status'))
