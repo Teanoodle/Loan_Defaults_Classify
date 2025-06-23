@@ -39,6 +39,9 @@ def print_metrics(y_true, y_pred):
     print("Classification Report:")
     print(classification_report(y_true, y_pred))
 
+
+
+
 # Basic model
 print("=== Basic Random Forest ===")
 rf = RandomForestClassifier()

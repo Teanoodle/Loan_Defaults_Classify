@@ -41,6 +41,8 @@ def print_metrics(y_true, y_pred):
     print("Classification Report:")
     print(classification_report(y_true, y_pred))
 
+
+
 # Basic model
 print("=== Basic XGBoost ===")
 xgb = XGBClassifier()
