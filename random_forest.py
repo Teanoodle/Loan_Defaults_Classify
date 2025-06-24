@@ -210,17 +210,22 @@ def shap_analysis(model, X_train, X_test, feature_names):
     
 
 print("\n=== Visualization Analysis for Basic RF ===")
-# plot_auc_roc(rf, X_test, y_test)
-# shap_analysis(rf, X_train, X_test[:10], data.columns.drop('loan_status'))
+plot_auc_roc(rf, X_test, y_test)
+shap_analysis(rf, X_train, X_test[:10], data.columns.drop('loan_status'))
 
-plot_auc_roc(rf_selected, X_test_selected, y_test)
-shap_analysis(rf_selected, X_train, X_test_selected[:10], data.columns.drop('loan_status'))
+# print("\n=== Visualization Analysis for Selected RF ===")
+# plot_auc_roc(rf_selected, X_test_selected, y_test)
+# shap_analysis(rf_selected, X_train_selected, X_test_selected[:10], 
+#              data.columns.drop('loan_status')[selector.get_support()])
 
+# print("\n=== Visualization Analysis for Weighted RF ===")
 # plot_auc_roc(rf_weighted, X_test, y_test)
 # shap_analysis(rf_weighted, X_train, X_test[:10], data.columns.drop('loan_status'))
 
+# print("\n=== Visualization Analysis for SMOTE RF ===")
 # plot_auc_roc(rf_smote, X_test, y_test)
-# shap_analysis(rf_smote, X_train, X_test[:10], data.columns.drop('loan_status'))
+# shap_analysis(rf_smote, X_smote, X_test[:10], data.columns.drop('loan_status'))
 
+# print("\n=== Visualization Analysis for ADASYN RF ===")
 # plot_auc_roc(rf_adasyn, X_test, y_test)
-# shap_analysis(rf_adasyn, X_train, X_test[:10], data.columns.drop('loan_status'))
+# shap_analysis(rf_adasyn, X_adasyn, X_test[:10], data.columns.drop('loan_status'))

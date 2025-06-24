@@ -89,11 +89,65 @@ print("\n=== Sample distribution before SMOTE ===")
 print(f"Positive samples: {sum(y_train == 1)}")
 print(f"Negative samples: {sum(y_train == 0)}")
 
+
+
 smote = SMOTE()
 X_smote, y_smote = smote.fit_resample(X_train, y_train)
 print("\n=== Sample distribution after SMOTE ===")
 print(f"Positive samples: {sum(y_smote == 1)}")
 print(f"Negative samples: {sum(y_smote == 0)}")
+
+# Visualize loan_status distribution before/after SMOTE
+plt.figure(figsize=(12, 6))
+
+# Before SMOTE
+plt.subplot(1, 2, 1)
+counts_before, bins, patches = plt.hist([y_train[y_train==0], y_train[y_train==1]], 
+         bins=[-0.5, 0.5, 1.5], rwidth=0.8, 
+         color=['yellow', 'purple'], alpha=0.7,
+         label=['Non-default', 'Default'])
+plt.xticks([0, 1], ['Non-default (0)', 'Default (1)'])
+plt.title("Loan Status Distribution Before SMOTE")
+plt.ylabel("Count")
+plt.xlabel("Loan Status")
+plt.legend()
+
+# Add count labels to each bar
+for i in range(len(patches)):
+    for rect in patches[i]:
+        height = rect.get_height()
+        if height > 0:
+            plt.text(rect.get_x() + rect.get_width()/2., height,
+                    f'{int(height)}',
+                    ha='center', va='bottom')
+
+# After SMOTE
+plt.subplot(1, 2, 2)
+counts_after, bins, patches = plt.hist([y_smote[y_smote==0], y_smote[y_smote==1]], 
+         bins=[-0.5, 0.5, 1.5], rwidth=0.8, 
+         color=['yellow', 'purple'], alpha=0.7,
+         label=['Non-default', 'Default'])
+plt.xticks([0, 1], ['Non-default (0)', 'Default (1)'])
+plt.title("Loan Status Distribution After SMOTE")
+plt.ylabel("Count")
+plt.xlabel("Loan Status")
+plt.legend()
+
+# Add count labels to each bar
+for i in range(len(patches)):
+    for rect in patches[i]:
+        height = rect.get_height()
+        if height > 0:
+            plt.text(rect.get_x() + rect.get_width()/2., height,
+                    f'{int(height)}',
+                    ha='center', va='bottom')
+
+plt.suptitle("SMOTE Effect on Loan Default Status Distribution")
+
+plt.tight_layout()
+plt.savefig("SMOTE_sample_distribution.png", dpi=300, bbox_inches='tight')
+plt.show()
+
 lr_smote = LogisticRegression()
 # model_smote = LogisticRegression(
 #     max_iter=1000,
@@ -113,11 +167,65 @@ print("\n=== Sample distribution before ADASYN ===")
 print(f"Positive samples: {sum(y_train == 1)}")
 print(f"Negative samples: {sum(y_train == 0)}")
 
+
+
 adasyn = ADASYN()
 X_adasyn, y_adasyn = adasyn.fit_resample(X_train, y_train)
 print("\n=== Sample distribution after ADASYN ===")
 print(f"Positive samples: {sum(y_adasyn == 1)}")
 print(f"Negative samples: {sum(y_adasyn == 0)}")
+
+# Visualize loan_status distribution before/after ADASYN
+plt.figure(figsize=(12, 6))
+
+# Before ADASYN
+plt.subplot(1, 2, 1)
+counts_before, bins, patches = plt.hist([y_train[y_train==0], y_train[y_train==1]], 
+         bins=[-0.5, 0.5, 1.5], rwidth=0.8, 
+         color=['yellow', 'purple'], alpha=0.7,
+         label=['Non-default', 'Default'])
+plt.xticks([0, 1], ['Non-default (0)', 'Default (1)'])
+plt.title("Loan Status Distribution Before ADASYN")
+plt.ylabel("Count")
+plt.xlabel("Loan Status")
+plt.legend()
+
+# Add count labels to each bar
+for i in range(len(patches)):
+    for rect in patches[i]:
+        height = rect.get_height()
+        if height > 0:
+            plt.text(rect.get_x() + rect.get_width()/2., height,
+                    f'{int(height)}',
+                    ha='center', va='bottom')
+
+# After ADASYN
+plt.subplot(1, 2, 2)
+counts_after, bins, patches = plt.hist([y_adasyn[y_adasyn==0], y_adasyn[y_adasyn==1]], 
+         bins=[-0.5, 0.5, 1.5], rwidth=0.8, 
+         color=['yellow', 'purple'], alpha=0.7,
+         label=['Non-default', 'Default'])
+plt.xticks([0, 1], ['Non-default (0)', 'Default (1)'])
+plt.title("Loan Status Distribution After ADASYN")
+plt.ylabel("Count")
+plt.xlabel("Loan Status")
+plt.legend()
+
+# Add count labels to each bar
+for i in range(len(patches)):
+    for rect in patches[i]:
+        height = rect.get_height()
+        if height > 0:
+            plt.text(rect.get_x() + rect.get_width()/2., height,
+                    f'{int(height)}',
+                    ha='center', va='bottom')
+
+plt.suptitle("ADASYN Effect on Loan Default Status Distribution")
+
+plt.tight_layout()
+plt.savefig("ADASYN_sample_distribution.png", dpi=300, bbox_inches='tight')
+plt.show()
+
 lr_adasyn = LogisticRegression()
 # model_adasyn = LogisticRegression(
 #     max_iter=1000,
