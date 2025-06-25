@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pandas as pd
-from sklearn.metrics import recall_score, f1_score, roc_auc_score, roc_curve, auc
+from sklearn.metrics import recall_score, f1_score, roc_auc_score, roc_curve, auc, accuracy_score
 import joblib
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
@@ -94,25 +94,115 @@ for group, model_list in model_groups.items():
     plt.savefig(f'f1_comparison_{group.lower().replace(" ", "_")}.png', dpi=300, bbox_inches='tight')
     plt.show()
 
-# 3. AUC-ROC曲线对比图（按算法分开）
+# 7. Accuracy和Recall对比图（合并为一张图）
+plt.figure(figsize=(20, 8))
+x_labels = ['Basic', 'Class Weighted', 'SMOTE', 'ADASYN']
+colors = ['blue', 'green', 'red', 'purple']
+markers = ['o', 's', '^', 'D']
+
+# 左子图 - Accuracy
+plt.subplot(1, 2, 1)
 for group, model_list in model_groups.items():
-    plt.figure(figsize=(10, 8))
-    colors = ['blue', 'green', 'red', 'purple']
-    for name, color in zip(model_list, colors):
+    accuracy_scores = []
+    for name in model_list:
+        model = models[name]
+        y_pred = model.predict(X_test)
+        accuracy = accuracy_score(y_test, y_pred)
+        accuracy_scores.append(accuracy)
+    
+    plt.plot(x_labels, accuracy_scores, marker=markers[0], markersize=8, 
+             linestyle='-', linewidth=2, color=colors[0], label=group)
+    for i, v in enumerate(accuracy_scores):
+        plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
+    colors.pop(0)
+    markers.pop(0)
+
+plt.title('Accuracy Comparison')
+plt.ylabel('Accuracy Score')
+plt.xlabel('Sampling Method')
+plt.legend()
+plt.grid(True)
+
+# 右子图 - Recall
+plt.subplot(1, 2, 2)
+colors = ['blue', 'green', 'red', 'purple']
+markers = ['o', 's', '^', 'D']
+for group, model_list in model_groups.items():
+    recall_scores = []
+    for name in model_list:
+        model = models[name]
+        y_pred = model.predict(X_test)
+        recall = recall_score(y_test, y_pred)
+        recall_scores.append(recall)
+    
+    plt.plot(x_labels, recall_scores, marker=markers[0], markersize=8, 
+             linestyle='-', linewidth=2, color=colors[0], label=group)
+    for i, v in enumerate(recall_scores):
+        plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
+    colors.pop(0)
+    markers.pop(0)
+
+plt.title('Recall Score Comparison')
+plt.ylabel('Recall Score')
+plt.xlabel('Sampling Method')
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.savefig('accuracy_recall_comparison.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+# 8. F1和ROC对比图（合并为一张图）
+plt.figure(figsize=(20, 8))
+
+# 左子图 - F1 Score
+plt.subplot(1, 2, 1)
+colors = ['blue', 'green', 'red', 'purple']
+markers = ['o', 's', '^', 'D']
+for group, model_list in model_groups.items():
+    f1_scores = []
+    for name in model_list:
+        model = models[name]
+        y_pred = model.predict(X_test)
+        f1 = f1_score(y_test, y_pred)
+        f1_scores.append(f1)
+    
+    plt.plot(x_labels, f1_scores, marker=markers[0], markersize=8, 
+             linestyle='-', linewidth=2, color=colors[0], label=group)
+    for i, v in enumerate(f1_scores):
+        plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
+    colors.pop(0)
+    markers.pop(0)
+
+plt.title('F1 Score Comparison')
+plt.ylabel('F1 Score')
+plt.xlabel('Sampling Method')
+plt.legend()
+plt.grid(True)
+
+# 右子图 - ROC曲线
+plt.subplot(1, 2, 2)
+colors = ['blue', 'green', 'red', 'purple']
+for group, model_list in model_groups.items():
+    for name in model_list:
         model = models[name]
         y_pred_proba = model.predict_proba(X_test)[:, 1]
         fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
         roc_auc = auc(fpr, tpr)
-        plt.plot(fpr, tpr, color=color, lw=2,
-                 label=f'{name} (AUC = {roc_auc:.2f})')
-    
-    plt.plot([0, 1], [0, 1], 'k--', lw=2)
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title(f'ROC Curve Comparison - {group}')
-    plt.legend(loc='lower right')
-    plt.tight_layout()
-    plt.savefig(f'roc_comparison_{group.lower().replace(" ", "_")}.png', dpi=300, bbox_inches='tight')
-    plt.show()
+        plt.plot(fpr, tpr, color=colors[0], lw=2,
+                label=f'{group} {name.split()[-1]} (AUC = {roc_auc:.2f})')
+    colors.pop(0)
+
+plt.plot([0, 1], [0, 1], 'k--', lw=2)
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve Comparison')
+plt.legend(loc='lower right')
+plt.grid(True)
+
+plt.tight_layout()
+plt.savefig('f1_roc_comparison.png', dpi=300, bbox_inches='tight')
+plt.show()
+

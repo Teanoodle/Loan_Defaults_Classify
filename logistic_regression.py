@@ -57,20 +57,20 @@ joblib.dump(lr, 'lr_model_basic.pkl')
 
 
 
-# L1 regularization
-print("\n=== Logistic Regression with L1 Regularization ===")
-lr_l1 = LogisticRegression(
-    penalty='l1', 
-    # penalty='elasticnet',  # Combine L1 and L2 regularization
-    # l1_ratio=0.5,  # Balance between L1 and L2
-    solver='saga',  # Better for large datasets
-    C=0.1
-)
-lr_l1.fit(X_train, y_train)
-y_pred = lr_l1.predict(X_test)
-print_metrics(y_test, y_pred)
-print_top_features(lr_l1, data.columns.drop('loan_status'))
-joblib.dump(lr_l1, 'lr_l1_model.pkl')
+# # L1 regularization
+# print("\n=== Logistic Regression with L1 Regularization ===")
+# lr_l1 = LogisticRegression(
+#     penalty='l1', 
+#     # penalty='elasticnet',  # Combine L1 and L2 regularization
+#     # l1_ratio=0.5,  # Balance between L1 and L2
+#     solver='saga',  # Better for large datasets
+#     C=0.1
+# )
+# lr_l1.fit(X_train, y_train)
+# y_pred = lr_l1.predict(X_test)
+# print_metrics(y_test, y_pred)
+# print_top_features(lr_l1, data.columns.drop('loan_status'))
+# joblib.dump(lr_l1, 'lr_l1_model.pkl')
 
 
 
