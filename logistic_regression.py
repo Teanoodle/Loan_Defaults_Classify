@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 # Load data
 data = pd.read_csv('process_data_nolog.csv')
-# data = pd.read_csv('process_data.csv')  # 用这个更好
+# data = pd.read_csv('process_data.csv')
 
 # Feature engineering - Standardization required for logistic regression
 X = data.drop('loan_status', axis=1)

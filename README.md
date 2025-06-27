@@ -31,7 +31,7 @@ A machine learning project for classifying loan defaults using different models
 ## Project Status
 
 🚀 **In Progress**  
-📅 Last updated: June 26, 2025  
+📅 Last updated: June 27, 2025  
 🔗 Data source: [Kaggle]([https://www.olx.in](https://www.kaggle.com/datasets/laotse/credit-risk-dataset/data)) by Lao Tse
 
 > Note: This project is currently under development. Initial dataset analysis has been completed.  
