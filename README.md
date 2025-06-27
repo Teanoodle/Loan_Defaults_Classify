@@ -5,6 +5,7 @@ A machine learning project for classifying loan defaults using different models
 ## Dataset Description
 
 ### Features
+
 - **person_age**: Age
 - **person_income**: Annual Income
 - **person_home_ownership**: Home ownership (MORTGAGE,OWN,RENT,OTHER)
@@ -19,17 +20,18 @@ A machine learning project for classifying loan defaults using different models
 - **cb_preson_cred_hist_length**: Credit history length
 
 ### Statistics
+
 | Metric          | Value         |
 |-----------------|---------------|
 | Total entries   | 32,564        |
-| Columns         | 12            | 
-| Memory usage    | 17.11+ MB      |
+| Columns         | 12            |
+| Memory usage    | 17.11+ MB     |
 | Data types      | Mixed (int64 and object) |
 
 ## Project Status
+
 🚀 **In Progress**  
-📅 Last updated: June 14, 2025  
+📅 Last updated: June 26, 2025  
 🔗 Data source: [Kaggle]([https://www.olx.in](https://www.kaggle.com/datasets/laotse/credit-risk-dataset/data)) by Lao Tse
 
-> Note: This project is currently under development. Initial dataset analysis has been completed.
-
+> Note: This project is currently under development. Initial dataset analysis has been completed.  

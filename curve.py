@@ -7,24 +7,22 @@ import joblib
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
-# 设置绘图风格
 sns.set(style="whitegrid")
 plt.rcParams['figure.figsize'] = (12, 8)
 plt.rcParams['font.size'] = 12
 
-# 加载数据
+# load data
 data = pd.read_csv('process_data_nolog.csv')
 X = data.drop('loan_status', axis=1)
 y = data['loan_status']
 
-# 标准化特征
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# 划分训练测试集
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
 
-# 加载所有模型
+# load models
+# Note: Ensure that the models are saved in the same directory as this script or provide the
 models = {
     'LR Basic': joblib.load('lr_model_basic.pkl'),
     'LR Class Weights': joblib.load('lr_weighted_model.pkl'), 
@@ -44,7 +42,7 @@ models = {
     'RF ADASYN': joblib.load('rf_adasyn_model.pkl')
 }
 
-# 按模型类型分组
+# class the models into groups for easier plotting
 model_groups = {
     'Logistic Regression': ['LR Basic', 'LR Class Weights', 'LR SMOTE', 'LR ADASYN'],
     'XGBoost': ['XGB Basic', 'XGB Weighted', 'XGB SMOTE', 'XGB ADASYN'],
@@ -52,7 +50,7 @@ model_groups = {
     'Random Forest': ['RF Basic', 'RF Weighted', 'RF SMOTE', 'RF ADASYN']
 }
 
-# 1. Recall对比折线图（按算法分开）
+# 1. Recall comparison line chart (by algorithm)
 for group, model_list in model_groups.items():
     plt.figure(figsize=(12, 6))
     recall_scores = []
@@ -73,7 +71,7 @@ for group, model_list in model_groups.items():
     plt.savefig(f'recall_comparison_{group.lower().replace(" ", "_")}.png', dpi=300, bbox_inches='tight')
     plt.show()
 
-# 2. F1 Score对比折线图（按算法分开）
+# 2. F1 Score comparison line chart (by algorithm)
 for group, model_list in model_groups.items():
     plt.figure(figsize=(12, 6))
     f1_scores = []
@@ -94,13 +92,18 @@ for group, model_list in model_groups.items():
     plt.savefig(f'f1_comparison_{group.lower().replace(" ", "_")}.png', dpi=300, bbox_inches='tight')
     plt.show()
 
-# 7. Accuracy和Recall对比图（合并为一张图）
+
+
+
+
+
+# 7. Accracy and Recall comparison line chart (by sampling method)
 plt.figure(figsize=(20, 8))
 x_labels = ['Basic', 'Class Weighted', 'SMOTE', 'ADASYN']
 colors = ['blue', 'green', 'red', 'purple']
 markers = ['o', 's', '^', 'D']
 
-# 左子图 - Accuracy
+# Left - Accuracy
 plt.subplot(1, 2, 1)
 for group, model_list in model_groups.items():
     accuracy_scores = []
@@ -123,7 +126,7 @@ plt.xlabel('Sampling Method')
 plt.legend()
 plt.grid(True)
 
-# 右子图 - Recall
+# Right - Recall
 plt.subplot(1, 2, 2)
 colors = ['blue', 'green', 'red', 'purple']
 markers = ['o', 's', '^', 'D']
@@ -152,10 +155,14 @@ plt.tight_layout()
 plt.savefig('accuracy_recall_comparison.png', dpi=300, bbox_inches='tight')
 plt.show()
 
-# 8. F1和ROC对比图（合并为一张图）
+
+
+
+
+# 8. F1 and ROC comparison line chart (by sampling method)
 plt.figure(figsize=(20, 8))
 
-# 左子图 - F1 Score
+# Left - F1 Score
 plt.subplot(1, 2, 1)
 colors = ['blue', 'green', 'red', 'purple']
 markers = ['o', 's', '^', 'D']
@@ -180,7 +187,7 @@ plt.xlabel('Sampling Method')
 plt.legend()
 plt.grid(True)
 
-# 右子图 - ROC曲线
+# Right - ROC曲线
 plt.subplot(1, 2, 2)
 colors = ['blue', 'green', 'red', 'purple']
 for group, model_list in model_groups.items():
