@@ -12,7 +12,8 @@ plt.rcParams['figure.figsize'] = (12, 8)
 plt.rcParams['font.size'] = 12
 
 # load data
-data = pd.read_csv('process_data_nolog.csv')
+# data = pd.read_csv('process_data_nolog.csv')
+data = pd.read_csv('process_data.csv')
 X = data.drop('loan_status', axis=1)
 y = data['loan_status']
 
@@ -39,7 +40,8 @@ models = {
     'RF Basic': joblib.load('rf_model_basic.pkl'),
     'RF Weighted': joblib.load('rf_weighted_model.pkl'),
     'RF SMOTE': joblib.load('rf_smote_model.pkl'),
-    'RF ADASYN': joblib.load('rf_adasyn_model.pkl')
+    'RF ADASYN': joblib.load('rf_adasyn_model.pkl'),
+    'Voting Classifier': joblib.load('voting.pkl')
 }
 
 # class the models into groups for easier plotting
@@ -47,7 +49,8 @@ model_groups = {
     'Logistic Regression': ['LR Basic', 'LR Class Weights', 'LR SMOTE', 'LR ADASYN'],
     'XGBoost': ['XGB Basic', 'XGB Weighted', 'XGB SMOTE', 'XGB ADASYN'],
     'LightGBM': ['LGB Basic', 'LGB Weighted', 'LGB SMOTE', 'LGB ADASYN'],
-    'Random Forest': ['RF Basic', 'RF Weighted', 'RF SMOTE', 'RF ADASYN']
+    'Random Forest': ['RF Basic', 'RF Weighted', 'RF SMOTE', 'RF ADASYN'],
+    'Ensemble': ['Voting Classifier']
 }
 
 # 1. Recall comparison line chart (by algorithm)
@@ -100,8 +103,14 @@ for group, model_list in model_groups.items():
 # 7. Accracy and Recall comparison line chart (by sampling method)
 plt.figure(figsize=(20, 8))
 x_labels = ['Basic', 'Class Weighted', 'SMOTE', 'ADASYN']
-colors = ['blue', 'green', 'red', 'purple']
-markers = ['o', 's', '^', 'D']
+group_colors = {
+    'Logistic Regression': 'blue',
+    'XGBoost': 'green',
+    'LightGBM': 'red',
+    'Random Forest': 'purple',
+    'Ensemble': 'gold'
+}
+markers = ['o', 's', '^', 'D', '*']
 
 # Left - Accuracy
 plt.subplot(1, 2, 1)
@@ -113,12 +122,17 @@ for group, model_list in model_groups.items():
         accuracy = accuracy_score(y_test, y_pred)
         accuracy_scores.append(accuracy)
     
-    plt.plot(x_labels, accuracy_scores, marker=markers[0], markersize=8, 
-             linestyle='-', linewidth=2, color=colors[0], label=group)
-    for i, v in enumerate(accuracy_scores):
-        plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
-    colors.pop(0)
-    markers.pop(0)
+    if group == 'Ensemble':
+        # Special handling for Ensemble model
+        plt.scatter(1, accuracy_scores[0], marker='*', s=200, 
+                   color=group_colors[group], label=group, zorder=5)
+        plt.text(1, accuracy_scores[0], f"{accuracy_scores[0]:.3f}", 
+                ha='center', va='bottom')
+    else:
+        plt.plot(x_labels, accuracy_scores, marker='o', markersize=8, 
+               linestyle='-', linewidth=2, color=group_colors[group], label=group)
+        for i, v in enumerate(accuracy_scores):
+            plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
 
 plt.title('Accuracy Comparison')
 plt.ylabel('Accuracy Score')
@@ -128,8 +142,6 @@ plt.grid(True)
 
 # Right - Recall
 plt.subplot(1, 2, 2)
-colors = ['blue', 'green', 'red', 'purple']
-markers = ['o', 's', '^', 'D']
 for group, model_list in model_groups.items():
     recall_scores = []
     for name in model_list:
@@ -138,12 +150,17 @@ for group, model_list in model_groups.items():
         recall = recall_score(y_test, y_pred)
         recall_scores.append(recall)
     
-    plt.plot(x_labels, recall_scores, marker=markers[0], markersize=8, 
-             linestyle='-', linewidth=2, color=colors[0], label=group)
-    for i, v in enumerate(recall_scores):
-        plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
-    colors.pop(0)
-    markers.pop(0)
+    if group == 'Ensemble':
+        # Special handling for Ensemble model
+        plt.scatter(1, recall_scores[0], marker='*', s=200, 
+                   color=group_colors[group], label=group, zorder=5)
+        plt.text(1, recall_scores[0], f"{recall_scores[0]:.3f}", 
+                ha='center', va='bottom')
+    else:
+        plt.plot(x_labels, recall_scores, marker='o', markersize=8, 
+               linestyle='-', linewidth=2, color=group_colors[group], label=group)
+        for i, v in enumerate(recall_scores):
+            plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
 
 plt.title('Recall Score Comparison')
 plt.ylabel('Recall Score')
@@ -164,8 +181,6 @@ plt.figure(figsize=(20, 8))
 
 # Left - F1 Score
 plt.subplot(1, 2, 1)
-colors = ['blue', 'green', 'red', 'purple']
-markers = ['o', 's', '^', 'D']
 for group, model_list in model_groups.items():
     f1_scores = []
     for name in model_list:
@@ -174,12 +189,17 @@ for group, model_list in model_groups.items():
         f1 = f1_score(y_test, y_pred)
         f1_scores.append(f1)
     
-    plt.plot(x_labels, f1_scores, marker=markers[0], markersize=8, 
-             linestyle='-', linewidth=2, color=colors[0], label=group)
-    for i, v in enumerate(f1_scores):
-        plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
-    colors.pop(0)
-    markers.pop(0)
+    if group == 'Ensemble':
+        # Special handling for Ensemble model
+        plt.scatter(1, f1_scores[0], marker='*', s=200, 
+                   color=group_colors[group], label=group, zorder=5)
+        plt.text(1, f1_scores[0], f"{f1_scores[0]:.3f}", 
+                ha='center', va='bottom')
+    else:
+        plt.plot(x_labels, f1_scores, marker='o', markersize=8, 
+               linestyle='-', linewidth=2, color=group_colors[group], label=group)
+        for i, v in enumerate(f1_scores):
+            plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
 
 plt.title('F1 Score Comparison')
 plt.ylabel('F1 Score')
@@ -189,16 +209,18 @@ plt.grid(True)
 
 # Right - ROC曲线
 plt.subplot(1, 2, 2)
-colors = ['blue', 'green', 'red', 'purple']
 for group, model_list in model_groups.items():
     for name in model_list:
         model = models[name]
         y_pred_proba = model.predict_proba(X_test)[:, 1]
         fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
         roc_auc = auc(fpr, tpr)
-        plt.plot(fpr, tpr, color=colors[0], lw=2,
-                label=f'{group} {name.split()[-1]} (AUC = {roc_auc:.2f})')
-    colors.pop(0)
+        if group == 'Ensemble':
+            plt.plot(fpr, tpr, color=group_colors[group], lw=3,
+                    label=f'{group} (AUC = {roc_auc:.2f})', zorder=5)
+        else:
+            plt.plot(fpr, tpr, color=group_colors[group], lw=2,
+                    label=f'{group} {name.split()[-1]} (AUC = {roc_auc:.2f})')
 
 plt.plot([0, 1], [0, 1], 'k--', lw=2)
 plt.xlim([0.0, 1.0])
@@ -212,4 +234,3 @@ plt.grid(True)
 plt.tight_layout()
 plt.savefig('f1_roc_comparison.png', dpi=300, bbox_inches='tight')
 plt.show()
-

@@ -9,7 +9,8 @@ from imblearn.over_sampling import SMOTE, ADASYN
 import joblib
 
 # Load data
-data = pd.read_csv('process_data_nolog.csv')
+# data = pd.read_csv('process_data_nolog.csv')
+data = pd.read_csv('process_data.csv')
 
 # Prepare features and target variable
 X = data.drop('loan_status', axis=1)
@@ -55,10 +56,10 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
 # 0. Pure voting classifier (no class weights/resampling)
 print("\n=== Pure Voting Classifier ===")
 # Load pre-trained models
-logreg = joblib.load('lr_smote_model.pkl')
-xgb = joblib.load('xgb_adasyn_model.pkl')
-lgbm = joblib.load('lgb_adasyn_model.pkl')
-rf = joblib.load('rf_smote_model.pkl')
+logreg = joblib.load('lr_adasyn_model.pkl')
+xgb = joblib.load('xgb_weighted_model.pkl')
+lgbm = joblib.load('lgb_weighted_model.pkl')
+rf = joblib.load('rf_adasyn_model.pkl')
 voting_classifier = VotingClassifier(
     estimators=[
         ('logreg', logreg),
@@ -68,25 +69,26 @@ voting_classifier = VotingClassifier(
     ],
     voting='soft'
 )
-voting_classifier.fit(X_train, y_train)
-voting_pure = evaluate_model(
+# voting_classifier.fit(X_train, y_train)
+# voting_pure = evaluate_model(
+#     voting_classifier, X_train, y_train, X_test, y_test,
+#     "Pure Voting Classifier"
+# )
+# Save model
+# joblib.dump(voting_pure, 'voting_pure.pkl')
+
+adasyn = ADASYN()
+# adasyn = ADASYN(
+#     sampling_strategy=0.8,
+#     random_state=42,
+#     n_neighbors=3
+# )
+X_adasyn, y_adasyn = adasyn.fit_resample(X_train, y_train)
+# # Train with oversampled data, evaluate with original training data
+voting_classifier.fit(X_adasyn, y_adasyn)
+voting_adasyn = evaluate_model(
     voting_classifier, X_train, y_train, X_test, y_test,
-    "Pure Voting Classifier"
+    "ADASYN Voting Classifier"
 )
 # Save model
-joblib.dump(voting_pure, 'voting_pure.pkl')
-
-
-# # Train with oversampled data, evaluate with original training data
-# voting_classifier.fit(X_train_smote, y_train_smote)
-# voting_smote = evaluate_model(
-#     voting_classifier, X_train, y_train, X_test, y_test,
-#     "SMOTE Voting Classifier"
-# )
-
-# # Train with oversampled data, evaluate with original training data
-# voting_classifier.fit(X_train_adasyn, y_train_adasyn)
-# voting_adasyn = evaluate_model(
-#     voting_classifier, X_train, y_train, X_test, y_test,
-#     "ADASYN Voting Classifier"
-# )
+joblib.dump(voting_classifier, 'voting.pkl')
