@@ -56,10 +56,10 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, method_name):
 # 0. Pure voting classifier (no class weights/resampling)
 print("\n=== Pure Voting Classifier ===")
 # Load pre-trained models
-logreg = joblib.load('lr_adasyn_model.pkl')
-xgb = joblib.load('xgb_weighted_model.pkl')
-lgbm = joblib.load('lgb_weighted_model.pkl')
-rf = joblib.load('rf_adasyn_model.pkl')
+logreg = joblib.load('lr_weighted_model.pkl')
+xgb = joblib.load('xgb_smote_model.pkl')
+lgbm = joblib.load('lgb_smote_model.pkl')
+rf = joblib.load('rf_weighted_model.pkl')
 voting_classifier = VotingClassifier(
     estimators=[
         ('logreg', logreg),

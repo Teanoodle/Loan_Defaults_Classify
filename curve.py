@@ -53,47 +53,47 @@ model_groups = {
     'Ensemble': ['Voting Classifier']
 }
 
-# 1. Recall comparison line chart (by algorithm)
-for group, model_list in model_groups.items():
-    plt.figure(figsize=(12, 6))
-    recall_scores = []
-    for name in model_list:
-        model = models[name]
-        y_pred = model.predict(X_test)
-        recall = recall_score(y_test, y_pred)
-        recall_scores.append(recall)
+# # 1. Recall comparison line chart (by algorithm)
+# for group, model_list in model_groups.items():
+#     plt.figure(figsize=(12, 6))
+#     recall_scores = []
+#     for name in model_list:
+#         model = models[name]
+#         y_pred = model.predict(X_test)
+#         recall = recall_score(y_test, y_pred)
+#         recall_scores.append(recall)
     
-    plt.plot(model_list, recall_scores, marker='o', markersize=8, linestyle='-', linewidth=2)
-    plt.title(f'Recall Score Comparison - {group}')
-    plt.ylabel('Recall Score')
-    plt.xlabel('Model Type')
-    plt.xticks(rotation=45)
-    for i, v in enumerate(recall_scores):
-        plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
-    plt.tight_layout()
-    plt.savefig(f'recall_comparison_{group.lower().replace(" ", "_")}.png', dpi=300, bbox_inches='tight')
-    plt.show()
+#     plt.plot(model_list, recall_scores, marker='o', markersize=8, linestyle='-', linewidth=2)
+#     plt.title(f'Recall Score Comparison - {group}')
+#     plt.ylabel('Recall Score')
+#     plt.xlabel('Model Type')
+#     plt.xticks(rotation=45)
+#     for i, v in enumerate(recall_scores):
+#         plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
+#     plt.tight_layout()
+#     plt.savefig(f'recall_comparison_{group.lower().replace(" ", "_")}.png', dpi=300, bbox_inches='tight')
+#     # plt.show()
 
-# 2. F1 Score comparison line chart (by algorithm)
-for group, model_list in model_groups.items():
-    plt.figure(figsize=(12, 6))
-    f1_scores = []
-    for name in model_list:
-        model = models[name]
-        y_pred = model.predict(X_test)
-        f1 = f1_score(y_test, y_pred)
-        f1_scores.append(f1)
+# # 2. F1 Score comparison line chart (by algorithm)
+# for group, model_list in model_groups.items():
+#     plt.figure(figsize=(12, 6))
+#     f1_scores = []
+#     for name in model_list:
+#         model = models[name]
+#         y_pred = model.predict(X_test)
+#         f1 = f1_score(y_test, y_pred)
+#         f1_scores.append(f1)
     
-    plt.plot(model_list, f1_scores, marker='o', markersize=8, linestyle='-', linewidth=2)
-    plt.title(f'F1 Score Comparison - {group}')
-    plt.ylabel('F1 Score')
-    plt.xlabel('Model Type')
-    plt.xticks(rotation=45)
-    for i, v in enumerate(f1_scores):
-        plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
-    plt.tight_layout()
-    plt.savefig(f'f1_comparison_{group.lower().replace(" ", "_")}.png', dpi=300, bbox_inches='tight')
-    plt.show()
+#     plt.plot(model_list, f1_scores, marker='o', markersize=8, linestyle='-', linewidth=2)
+#     plt.title(f'F1 Score Comparison - {group}')
+#     plt.ylabel('F1 Score')
+#     plt.xlabel('Model Type')
+#     plt.xticks(rotation=45)
+#     for i, v in enumerate(f1_scores):
+#         plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
+#     plt.tight_layout()
+#     plt.savefig(f'f1_comparison_{group.lower().replace(" ", "_")}.png', dpi=300, bbox_inches='tight')
+#     # plt.show()
 
 
 
@@ -101,7 +101,8 @@ for group, model_list in model_groups.items():
 
 
 # 7. Accracy and Recall comparison line chart (by sampling method)
-plt.figure(figsize=(20, 8))
+plt.rcParams['font.size'] = 15
+plt.figure(figsize=(30, 6))
 x_labels = ['Basic', 'Class Weighted', 'SMOTE', 'ADASYN']
 group_colors = {
     'Logistic Regression': 'blue',
@@ -134,9 +135,14 @@ for group, model_list in model_groups.items():
         for i, v in enumerate(accuracy_scores):
             plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
 
-plt.title('Accuracy Comparison')
-plt.ylabel('Accuracy Score')
-plt.xlabel('Sampling Method')
+# 设置x轴刻度标签的字体大小
+plt.tick_params(axis='x', labelsize=16)
+
+# 设置y轴刻度标签的字体大小
+plt.tick_params(axis='y', labelsize=16)
+plt.title('Accuracy Comparison', fontsize=24)
+plt.ylabel('Accuracy Score', fontsize=24)
+plt.xlabel('Sampling Method', fontsize=24)
 plt.legend()
 plt.grid(True)
 
@@ -162,9 +168,14 @@ for group, model_list in model_groups.items():
         for i, v in enumerate(recall_scores):
             plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
 
-plt.title('Recall Score Comparison')
-plt.ylabel('Recall Score')
-plt.xlabel('Sampling Method')
+# 设置x轴刻度标签的字体大小
+plt.tick_params(axis='x', labelsize=16)
+
+# 设置y轴刻度标签的字体大小
+plt.tick_params(axis='y', labelsize=16)
+plt.title('Recall Score Comparison', fontsize=24)
+plt.ylabel('Recall Score', fontsize=24)
+plt.xlabel('Sampling Method', fontsize=24)
 plt.legend()
 plt.grid(True)
 
@@ -177,7 +188,7 @@ plt.show()
 
 
 # 8. F1 and ROC comparison line chart (by sampling method)
-plt.figure(figsize=(20, 8))
+plt.figure(figsize=(24, 8))
 
 # Left - F1 Score
 plt.subplot(1, 2, 1)
@@ -201,13 +212,19 @@ for group, model_list in model_groups.items():
         for i, v in enumerate(f1_scores):
             plt.text(i, v, f"{v:.3f}", ha='center', va='bottom')
 
-plt.title('F1 Score Comparison')
-plt.ylabel('F1 Score')
-plt.xlabel('Sampling Method')
+# 设置x轴刻度标签的字体大小
+plt.tick_params(axis='x', labelsize=16)
+
+# 设置y轴刻度标签的字体大小
+plt.tick_params(axis='y', labelsize=16)
+plt.title('F1 Score Comparison', fontsize=24)
+plt.ylabel('F1 Score',fontsize=21)
+plt.xlabel('Sampling Method', fontsize=21)
 plt.legend()
 plt.grid(True)
 
-# Right - ROC曲线
+# Right - ROC curve
+plt.rcParams['font.size'] = 16
 plt.subplot(1, 2, 2)
 for group, model_list in model_groups.items():
     for name in model_list:
@@ -225,9 +242,14 @@ for group, model_list in model_groups.items():
 plt.plot([0, 1], [0, 1], 'k--', lw=2)
 plt.xlim([0.0, 1.0])
 plt.ylim([0.0, 1.05])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('ROC Curve Comparison')
+# 设置x轴刻度标签的字体大小
+plt.tick_params(axis='x', labelsize=16)
+
+# 设置y轴刻度标签的字体大小
+plt.tick_params(axis='y', labelsize=16)
+plt.xlabel('False Positive Rate', fontsize=21)
+plt.ylabel('True Positive Rate', fontsize=21)
+plt.title('ROC Curve Comparison', fontsize=24)
 plt.legend(loc='lower right')
 plt.grid(True)
 
